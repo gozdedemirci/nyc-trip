@@ -194,6 +194,10 @@ footer{color:var(--muted);font-size:12.5px;padding-block:0 30px;text-align:cente
 .g-btns{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:18px}
 .g-go{font-family:var(--display);font-size:23px;font-weight:800;background:var(--thu);color:#fff;border:0;border-radius:999px;padding:10px 30px;min-height:58px;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.18)}
 .g-go.alt{background:var(--surface-2);color:var(--ink)}
+.g-speed{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:16px;flex-wrap:wrap}
+.g-speed small{color:var(--muted);font-weight:700;font-size:15px;margin-right:2px}
+.g-speed button{border:2px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;min-height:44px;font-weight:800;font-size:16px;cursor:pointer}
+.g-speed button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
 .g-go:active{transform:translateY(2px);box-shadow:none}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}#art.s-sat #trio{transform:translateY(-6px)}}
 </style>
@@ -829,7 +833,7 @@ const GT={
   total:{tr:n=>`Bugün toplam ${n} balon`,en:n=>`${n} balloons in total today`},
   praise:{tr:['Harika!','Süper!','Aferin!','Çok güzel!','Bravo!'],en:['Great!','Super!','Well done!','Very nice!','Bravo!']},
   nope:{tr:'Bu değil 🙂',en:'Not this one 🙂'},
-  listen:{tr:'Tekrar dinle',en:'Listen again'}, close:{tr:'Kapat',en:'Close'}
+  listen:{tr:'Tekrar dinle',en:'Listen again'}, close:{tr:'Kapat',en:'Close'}, speed:{tr:'Hız',en:'Speed'}
 };
 const COL={red:'#e2453c',blue:'#3a7bd5',yellow:'#f4c430',green:'#3fa55b',purple:'#8b5cc8'};
 const RULES=[
@@ -844,6 +848,9 @@ const RULES=[
   {tr:'Hem <b>büyük</b> hem <b>sarı</b> balonlara dokun',en:'Tap balloons that are <b>big</b> and <b>yellow</b>',htr:'Büyük ve sarı',hen:'Big and yellow',ok:b=>b.big&&b.c==='yellow'}
 ];
 const GOAL=6;
+/* speed choice: v = rise speed multiplier, s = gap between balloons, more = extra balloons on screen */
+const SPEEDS=[{tr:'🐢 Yavaş',en:'🐢 Slow',v:.65,s:1.35,more:0},{tr:'Normal',en:'Normal',v:1,s:1,more:0},{tr:'🐇 Hızlı',en:'🐇 Fast',v:1.55,s:.7,more:1}];
+let gSpeed=1; try{const v=+localStorage.getItem('nyc-speed'); if(v===0||v===2) gSpeed=v;}catch(e){}
 const g={open:false,level:1,rule:RULES[0],caught:0,total:0,list:[],raf:0,last:0,spawnIn:0,since:0,lastLanes:[],running:false,phase:'start',W:0,H:0,msgT:0,cheerT:0,audio:null};
 const gEl={game:$('game'),field:$('g-field'),sky:$('g-sky'),rule:$('g-rule'),msg:$('g-msg'),trio:$('g-trio'),card:$('g-card'),panel:$('g-panel'),score:$('g-score')};
 const rnd=a=>a[Math.floor(Math.random()*a.length)];
@@ -903,8 +910,10 @@ function showStart(talk){
   let exHtml='';
   if(ex){ const y=[makeB(true),makeB(true)], n=makeB(false);
     exHtml=`<div class="g-ex">${y.map(b=>`<div>${balloonSVG(b)}<span class="y">✓</span></div>`).join('')}<i class="sep"></i><div>${balloonSVG(n)}<span class="n">✗</span></div></div>`; }
-  gEl.panel.innerHTML=`<p class="small">${GT.game[lang](g.level)}</p><p class="big">${g.rule[lang]}</p>${exHtml}<div class="g-btns"><button type="button" class="g-go" id="g-start">${GT.start[lang]} ▶</button></div>`;
+  gEl.panel.innerHTML=`<p class="small">${GT.game[lang](g.level)}</p><p class="big">${g.rule[lang]}</p>${exHtml}<div class="g-speed" role="group" aria-label="${GT.speed[lang]}"><small>${GT.speed[lang]}</small>${SPEEDS.map((o,i)=>`<button type="button" data-sp="${i}" aria-pressed="${i===gSpeed}">${o[lang]}</button>`).join('')}</div><div class="g-btns"><button type="button" class="g-go" id="g-start">${GT.start[lang]} ▶</button></div>`;
   $('g-start').onclick=startRound;
+  gEl.panel.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>{ gSpeed=+b.dataset.sp; try{localStorage.setItem('nyc-speed',gSpeed)}catch(e){}
+    gEl.panel.querySelectorAll('[data-sp]').forEach(x=>x.setAttribute('aria-pressed',x===b)); });
   if(talk) speak(g.rule[lang]);
 }
 function showEnd(talk){
@@ -929,7 +938,7 @@ function spawn(){
   let lane; for(let k=0;k<12;k++){ lane=Math.floor(Math.random()*lanes); if(!g.lastLanes.includes(lane)) break; }
   g.lastLanes=[lane,...g.lastLanes].slice(0,Math.min(2,lanes-1));
   b.x0=Math.max(4,Math.min(g.W-b.w-4, lane*lw+(lw-b.w)/2)); b.y=g.H+10;
-  b.v=Math.min(95, 52+g.level*5)*(0.85+Math.random()*.3)*(g.H/600)**.5; b.ph=Math.random()*6;
+  b.v=Math.min(95, 52+g.level*5)*(0.85+Math.random()*.3)*(g.H/600)**.5*SPEEDS[gSpeed].v; b.ph=Math.random()*6;
   const el=document.createElement('div'); el.className='bl'; el.style.width=b.w+'px'; el.style.height=b.h+'px';
   el.setAttribute('role','button'); el.innerHTML=balloonSVG(b);
   el.addEventListener('pointerdown',e=>{e.preventDefault(); tap(b);});
@@ -956,8 +965,8 @@ function confetti(b){
 }
 function tick(t){
   const dt=Math.min(.05,(t-(g.last||t))/1000); g.last=t;
-  if(g.running){ g.spawnIn-=dt; const maxOn=g.level<3?4:5;
-    if(g.spawnIn<=0 && g.list.filter(b=>!b.done).length<maxOn){ spawn(); g.spawnIn=Math.max(1.05,1.7-g.level*.06); } }
+  if(g.running){ g.spawnIn-=dt; const sp=SPEEDS[gSpeed], maxOn=(g.level<3?4:5)+sp.more;
+    if(g.spawnIn<=0 && g.list.filter(b=>!b.done).length<maxOn){ spawn(); g.spawnIn=Math.max(1.05,1.7-g.level*.06)*sp.s; } }
   for(const b of g.list){ if(g.phase!=='start') b.y-=b.v*dt;
     b.x=b.x0+Math.sin(t/900+b.ph)*7; b.el.style.transform=`translate(${b.x}px,${b.y}px)`;
     if(b.y<-b.h-10){ b.el.remove(); b.gone=true; } }
