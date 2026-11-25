@@ -142,6 +142,59 @@ footer{color:var(--muted);font-size:12.5px;padding-block:0 30px;text-align:cente
 @keyframes jump{0%{transform:translateY(0)}45%{transform:translateY(-30px)}75%{transform:translateY(-4px)}100%{transform:translateY(-6px)}}
 @keyframes rock{0%{transform:rotate(-1.8deg)}100%{transform:rotate(1.8deg)}}
 @keyframes waves{0%{transform:translateX(0)}100%{transform:translateX(24px)}}
+
+/* ---------- balloon game: full-screen overlay; balloons rise, tap only the ones the sentence asks for ---------- */
+:root{--sky1:#cde7f6;--sky2:#fbf1df}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--sky1:#13283a;--sky2:#2a2c3c}}
+:root[data-theme="dark"]{--sky1:#13283a;--sky2:#2a2c3c}
+.gamebtn{grid-column:1/-1;justify-content:center;width:100%;display:inline-flex;align-items:center;gap:8px;border:0;border-radius:999px;background:var(--thu);color:#fff;font-family:var(--display);font-weight:800;font-size:18px;padding:6px 18px;min-height:52px;cursor:pointer;margin:4px 0 12px;font-size:20px;box-shadow:0 3px 0 rgba(0,0,0,.15)}
+.gamebtn:active{transform:translateY(2px);box-shadow:none}
+.hero .gamebtn svg{width:26px;height:30px;display:block}
+.game{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;background:linear-gradient(var(--sky1),var(--sky2));padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);overscroll-behavior:contain;-webkit-user-select:none;user-select:none}
+.game[hidden]{display:none}
+.g-top{display:flex;align-items:center;gap:8px;padding:10px 16px}
+.g-ib{width:48px;height:48px;flex:none;border-radius:50%;border:0;background:var(--surface);color:var(--ink);display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,.12);cursor:pointer;font-weight:800;font-size:16px}
+.g-score{flex:1;display:flex;justify-content:center;gap:5px}
+.g-score i{width:16px;height:20px;border-radius:50% 50% 50% 50%/45% 45% 55% 55%;background:var(--surface);border:2px solid var(--line);transition:background .25s,transform .25s}
+.g-score i.on{background:var(--gold);border-color:var(--gold);transform:scale(1.15)}
+.g-rule{margin:0 16px;padding:10px 14px;background:var(--surface);border-radius:18px;font-family:var(--display);font-size:clamp(21px,5.6vw,28px);font-weight:700;text-align:center;line-height:1.2;box-shadow:0 2px 8px rgba(0,0,0,.08);text-wrap:balance}
+.g-rule b,.g-panel b{color:var(--thu);font-weight:800}
+.g-sky{position:relative;flex:1;overflow:hidden;touch-action:manipulation}
+#g-field{position:absolute;inset:0;z-index:2}
+.bl{position:absolute;left:0;top:0;will-change:transform;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.bl svg{display:block;width:100%;height:100%;pointer-events:none;transform-origin:50% 35%}
+.bl.pop svg{animation:bpop .3s ease-out forwards}
+.bl.nope svg{animation:nope .5s ease-in-out}
+.bl.bye{opacity:0;transition:opacity .6s}
+@keyframes bpop{to{transform:scale(1.6);opacity:0}}
+@keyframes nope{20%{transform:rotate(-12deg)}40%{transform:rotate(10deg)}60%{transform:rotate(-6deg)}80%{transform:rotate(3deg)}}
+.conf{position:absolute;width:10px;height:10px;border-radius:3px;z-index:3;pointer-events:none;animation:conf .75s ease-out forwards}
+@keyframes conf{to{transform:translate(var(--dx),var(--dy)) rotate(260deg);opacity:0}}
+.g-msg{position:absolute;left:0;right:0;top:14px;z-index:4;text-align:center;font-family:var(--display);font-weight:800;font-size:clamp(24px,7vw,32px);pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .25s,transform .25s;color:var(--ink);text-shadow:0 2px 0 var(--surface)}
+.g-msg.show{opacity:1;transform:none}
+.gtrio{position:absolute;left:50%;bottom:4px;width:min(180px,44vw);height:auto;transform:translateX(-50%);z-index:1;pointer-events:none}
+.gtrio *{transform-box:view-box}
+.gtrio .scene,.gtrio [data-id$="arm-up"],.gtrio .shadow{display:none}
+.gtrio.cheer [data-id$="arm-up"]{display:inline}
+.gtrio.cheer [data-id$="arm-down"]{display:none}
+.gtrio.cheer [data-id="pg"],.gtrio.cheer [data-id="pd"],.gtrio.cheer [data-id="pm"]{animation:hop .3s ease-out 4 alternate}
+.gtrio.cheer [data-id="pm"]{animation-delay:.1s}
+.gtrio.cheer [data-id="pd"]{animation-delay:.2s}
+.g-card{position:absolute;inset:0;z-index:5;display:grid;place-items:center;padding:16px 16px 120px}
+.g-card[hidden]{display:none}
+.g-panel{background:var(--surface);border-radius:24px;padding:22px 20px;max-width:420px;width:100%;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.15)}
+.g-panel .big{font-family:var(--display);font-size:clamp(25px,7vw,32px);font-weight:700;line-height:1.2;margin:0;text-wrap:balance}
+.g-panel .small{color:var(--muted);margin:8px 0 0;font-size:17px}
+.g-ex{display:flex;justify-content:center;align-items:flex-end;gap:14px;margin-top:14px}
+.g-ex div{position:relative;width:44px}
+.g-ex svg{width:44px;height:70px;display:block}
+.g-ex span{position:absolute;right:-8px;top:-4px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:14px}
+.g-ex .y{background:#2f9e55}.g-ex .n{background:#8a96a0}
+.g-ex .sep{width:2px;align-self:stretch;background:var(--line)}
+.g-btns{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:18px}
+.g-go{font-family:var(--display);font-size:23px;font-weight:800;background:var(--thu);color:#fff;border:0;border-radius:999px;padding:10px 30px;min-height:58px;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.18)}
+.g-go.alt{background:var(--surface-2);color:var(--ink)}
+.g-go:active{transform:translateY(2px);box-shadow:none}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}#art.s-sat #trio{transform:translateY(-6px)}}
 </style>
 
@@ -291,6 +344,8 @@ footer{color:var(--muted);font-size:12.5px;padding-block:0 30px;text-align:cente
       <h1 id="title"></h1>
       <p id="subtitle"></p>
     </div>
+
+    <button type="button" class="gamebtn" id="gamebtn"><svg viewBox="0 0 60 70" aria-hidden="true"><path d="M30 52 q-3 7 1 12" stroke="#fff" stroke-width="2.4" fill="none"/><ellipse cx="30" cy="27" rx="22" ry="25" fill="#fff"/><path d="M26 54 h8 l-4 -5z" fill="#fff"/><circle cx="22" cy="25" r="2.6" fill="var(--thu)"/><circle cx="38" cy="25" r="2.6" fill="var(--thu)"/><path d="M20 33 q10 9 20 0" stroke="var(--thu)" stroke-width="3" fill="none" stroke-linecap="round"/></svg><span id="gamebtn-t"></span></button>
   </div>
 </header>
 
@@ -319,6 +374,22 @@ footer{color:var(--muted);font-size:12.5px;padding-block:0 30px;text-align:cente
   <div class="tips" id="tips"></div>
   <ol class="stops" id="stops"></ol>
   <footer id="foot"></footer>
+</div>
+
+<div class="game" id="game" hidden role="dialog" aria-modal="true" aria-labelledby="g-rule">
+  <div class="g-top">
+    <button type="button" class="g-ib" id="g-close"><svg width="20" height="20" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+    <div class="g-score" id="g-score" aria-hidden="true"></div>
+    <button type="button" class="g-ib" id="g-lang"></button>
+    <button type="button" class="g-ib" id="g-say"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/></svg></button>
+  </div>
+  <div class="g-rule" id="g-rule" aria-live="polite"></div>
+  <div class="g-sky" id="g-sky">
+    <div id="g-field"></div>
+    <div class="g-msg" id="g-msg" aria-live="polite"></div>
+    <svg class="gtrio" id="g-trio" viewBox="0 0 220 212" aria-hidden="true"></svg>
+    <div class="g-card" id="g-card"><div class="g-panel" id="g-panel"></div></div>
+  </div>
 </div>
 
 <script>
@@ -744,7 +815,182 @@ function playScene(greet){
 art.addEventListener('click',()=>playScene(true));
 art.style.cursor='pointer';
 
-function renderAll(){renderChrome();renderDay();drawDay();}
+
+/* ---------- balloon game ----------
+   Each round: one short sentence (shown + read aloud) says which balloons to tap.
+   No timer, no lost points: a wrong tap only wiggles the balloon and repeats the hint.
+   Rules start simple (one colour) and grow to "not blue" and "red AND smiling". */
+const GT={
+  btn:{tr:'Balon oyunu',en:'Balloon game'},
+  start:{tr:'Başla',en:'Start'}, next:{tr:'Sonraki oyun',en:'Next game'}, done:{tr:'Bitir',en:'Finish'},
+  game:{tr:n=>`${n}. oyun`,en:n=>`Game ${n}`},
+  bravo:{tr:'Bravo! 🎉',en:'Bravo! 🎉'},
+  caught:{tr:n=>`${n} balon yakaladın!`,en:n=>`You caught ${n} balloons!`},
+  total:{tr:n=>`Bugün toplam ${n} balon`,en:n=>`${n} balloons in total today`},
+  praise:{tr:['Harika!','Süper!','Aferin!','Çok güzel!','Bravo!'],en:['Great!','Super!','Well done!','Very nice!','Bravo!']},
+  nope:{tr:'Bu değil 🙂',en:'Not this one 🙂'},
+  listen:{tr:'Tekrar dinle',en:'Listen again'}, close:{tr:'Kapat',en:'Close'}
+};
+const COL={red:'#e2453c',blue:'#3a7bd5',yellow:'#f4c430',green:'#3fa55b',purple:'#8b5cc8'};
+const RULES=[
+  {tr:'Sadece <b>kırmızı</b> balonlara dokun',en:'Tap only the <b>red</b> balloons',htr:'Kırmızıları ara',hen:'Look for the red ones',ok:b=>b.c==='red'},
+  {tr:'Sadece <b>gülen</b> balonlara dokun',en:'Tap only the <b>smiling</b> balloons',htr:'Gülen yüzleri ara',hen:'Look for smiling faces',ok:b=>b.smile},
+  {tr:'Sadece <b>sarı</b> balonlara dokun',en:'Tap only the <b>yellow</b> balloons',htr:'Sarıları ara',hen:'Look for the yellow ones',ok:b=>b.c==='yellow'},
+  {tr:'Sadece <b>büyük</b> balonlara dokun',en:'Tap only the <b>big</b> balloons',htr:'Büyükleri ara',hen:'Look for the big ones',ok:b=>b.big},
+  {tr:'<b>Mavi olmayan</b> balonlara dokun',en:'Tap the balloons that are <b>not blue</b>',htr:'Mavilere dokunma',hen:'Leave the blue ones',ok:b=>b.c!=='blue'},
+  {tr:'<b>Yeşil</b> ya da <b>mor</b> balonlara dokun',en:'Tap the <b>green</b> or <b>purple</b> balloons',htr:'Yeşil ya da mor',hen:'Green or purple',ok:b=>b.c==='green'||b.c==='purple'},
+  {tr:'Hem <b>kırmızı</b> hem <b>gülen</b> balonlara dokun',en:'Tap balloons that are <b>red</b> and <b>smiling</b>',htr:'Kırmızı ve gülen',hen:'Red and smiling',ok:b=>b.c==='red'&&b.smile},
+  {tr:'<b>Gülmeyen</b> balonlara dokun',en:'Tap the balloons that are <b>not smiling</b>',htr:'Gülmeyenleri ara',hen:'Look for no smile',ok:b=>!b.smile},
+  {tr:'Hem <b>büyük</b> hem <b>sarı</b> balonlara dokun',en:'Tap balloons that are <b>big</b> and <b>yellow</b>',htr:'Büyük ve sarı',hen:'Big and yellow',ok:b=>b.big&&b.c==='yellow'}
+];
+const GOAL=6;
+const g={open:false,level:1,rule:RULES[0],caught:0,total:0,list:[],raf:0,last:0,spawnIn:0,since:0,lastLanes:[],running:false,phase:'start',W:0,H:0,msgT:0,cheerT:0,audio:null};
+const gEl={game:$('game'),field:$('g-field'),sky:$('g-sky'),rule:$('g-rule'),msg:$('g-msg'),trio:$('g-trio'),card:$('g-card'),panel:$('g-panel'),score:$('g-score')};
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+const plain=h=>h.replace(/<[^>]+>/g,'');
+
+/* copy the header cartoon into the game (ids become data-id so they don't clash) */
+(function(){
+  const c=art.querySelector('#trio').cloneNode(true);
+  [c,...c.querySelectorAll('[id]')].forEach(n=>{n.setAttribute('data-id',n.id);n.removeAttribute('id');});
+  gEl.trio.appendChild(c);
+})();
+
+function balloonSVG(b){
+  const c=COL[b.c];
+  return `<svg viewBox="0 0 60 96" aria-hidden="true"><path d="M30 66 q-5 9 1 17 q5 7 -1 13" stroke="#7a8794" stroke-width="1.6" fill="none"/>`+
+    `<path d="M25.5 68 h9 l-4.5 -6z" fill="${c}"/><ellipse cx="30" cy="32" rx="26" ry="31" fill="${c}"/>`+
+    `<ellipse cx="19" cy="19" rx="5.5" ry="9" fill="#fff" opacity=".38" transform="rotate(-22 19 19)"/>`+
+    (b.smile?`<circle cx="21" cy="29" r="3.2" fill="#1e2a33"/><circle cx="39" cy="29" r="3.2" fill="#1e2a33"/><path d="M18.5 38 q11.5 12 23 0" stroke="#1e2a33" stroke-width="3.2" fill="none" stroke-linecap="round"/>`:'')+`</svg>`;
+}
+function randB(){return {c:rnd(Object.keys(COL)),smile:Math.random()<.5,big:Math.random()<.3};}
+function makeB(target){ for(let k=0;k<200;k++){const b=randB(); if(!!g.rule.ok(b)===target) return b;} return randB(); }
+
+function speak(html){
+  try{
+    const S=speechSynthesis; S.cancel();
+    const u=new SpeechSynthesisUtterance(plain(html).replace(/[^\p{L}\p{N}\s.,!?']/gu,'').trim());
+    u.lang=lang==='tr'?'tr-TR':'en-US'; u.rate=.85;
+    const v=S.getVoices().find(v=>v.lang.toLowerCase().startsWith(lang)); if(v) u.voice=v;
+    S.speak(u);
+  }catch(e){}
+}
+function popSound(){
+  try{
+    if(!g.audio) g.audio=new (window.AudioContext||window.webkitAudioContext)();
+    const a=g.audio, o=a.createOscillator(), v=a.createGain(), t=a.currentTime;
+    o.type='triangle'; o.frequency.setValueAtTime(520,t); o.frequency.exponentialRampToValueAtTime(1100,t+.1);
+    v.gain.setValueAtTime(.18,t); v.gain.exponentialRampToValueAtTime(.001,t+.18);
+    o.connect(v).connect(a.destination); o.start(t); o.stop(t+.2);
+  }catch(e){}
+}
+function flash(text,ms){ gEl.msg.textContent=text; gEl.msg.classList.add('show'); clearTimeout(g.msgT); g.msgT=setTimeout(()=>gEl.msg.classList.remove('show'),ms||1100); }
+function cheer(ms){ const t=gEl.trio; t.classList.remove('cheer'); void t.getBoundingClientRect(); t.classList.add('cheer'); clearTimeout(g.cheerT); if(ms) g.cheerT=setTimeout(()=>t.classList.remove('cheer'),ms); }
+function renderScore(){ gEl.score.innerHTML=Array.from({length:GOAL},(_,i)=>`<i class="${i<g.caught?'on':''}"></i>`).join(''); }
+
+function gLabels(){
+  $('gamebtn-t').textContent=GT.btn[lang];
+  $('g-lang').textContent=lang==='tr'?'EN':'TR';
+  $('g-lang').setAttribute('aria-label',lang==='tr'?'English':'Türkçe');
+  $('g-close').setAttribute('aria-label',GT.close[lang]);
+  $('g-say').setAttribute('aria-label',GT.listen[lang]);
+  gEl.rule.innerHTML=g.rule[lang];
+  if(g.phase==='start') showStart(false); else if(g.phase==='end') showEnd(false);
+}
+function showStart(talk){
+  g.phase='start'; g.running=false; gEl.card.hidden=false;
+  const ex=g.level<=4;  /* picture examples for the first rounds; later only the sentence */
+  let exHtml='';
+  if(ex){ const y=[makeB(true),makeB(true)], n=makeB(false);
+    exHtml=`<div class="g-ex">${y.map(b=>`<div>${balloonSVG(b)}<span class="y">✓</span></div>`).join('')}<i class="sep"></i><div>${balloonSVG(n)}<span class="n">✗</span></div></div>`; }
+  gEl.panel.innerHTML=`<p class="small">${GT.game[lang](g.level)}</p><p class="big">${g.rule[lang]}</p>${exHtml}<div class="g-btns"><button type="button" class="g-go" id="g-start">${GT.start[lang]} ▶</button></div>`;
+  $('g-start').onclick=startRound;
+  if(talk) speak(g.rule[lang]);
+}
+function showEnd(talk){
+  g.phase='end'; gEl.card.hidden=false;
+  gEl.panel.innerHTML=`<p class="big">${GT.bravo[lang]}</p><p class="small">${GT.caught[lang](GOAL)}<br>${GT.total[lang](g.total)}</p><div class="g-btns"><button type="button" class="g-go" id="g-next">${GT.next[lang]} ▶</button><button type="button" class="g-go alt" id="g-done">${GT.done[lang]}</button></div>`;
+  $('g-next').onclick=()=>{ g.level++; pickRule(); gEl.rule.innerHTML=g.rule[lang]; g.caught=0; renderScore(); showStart(true); };
+  $('g-done').onclick=closeGame;
+  if(talk) speak(GT.bravo[lang]+' '+GT.caught[lang](GOAL));
+}
+function pickRule(){ g.rule = g.level<=RULES.length ? RULES[g.level-1] : rnd(RULES.slice(3).filter(r=>r!==g.rule)); }
+
+function measure(){ const r=gEl.sky.getBoundingClientRect(); g.W=r.width; g.H=r.height; }
+function startRound(){
+  gEl.card.hidden=true; g.phase='play'; g.running=true; g.caught=0; g.since=0; g.spawnIn=.2; renderScore(); measure();
+  gEl.field.querySelectorAll('.bl').forEach(n=>n.remove()); g.list=[];
+}
+function spawn(){
+  const want = g.since>=2 || Math.random()<.45;   /* never more than 2 wrong balloons in a row */
+  const b=makeB(want); b.t=!!g.rule.ok(b); g.since=b.t?0:g.since+1;
+  const base=Math.min(86,Math.max(62,g.W/4.4)); b.w=b.big?base*1.32:base; b.h=b.w*1.6;
+  const lanes=Math.max(3,Math.floor(g.W/(base*1.15))), lw=g.W/lanes;
+  let lane; for(let k=0;k<12;k++){ lane=Math.floor(Math.random()*lanes); if(!g.lastLanes.includes(lane)) break; }
+  g.lastLanes=[lane,...g.lastLanes].slice(0,Math.min(2,lanes-1));
+  b.x0=Math.max(4,Math.min(g.W-b.w-4, lane*lw+(lw-b.w)/2)); b.y=g.H+10;
+  b.v=Math.min(95, 52+g.level*5)*(0.85+Math.random()*.3)*(g.H/600)**.5; b.ph=Math.random()*6;
+  const el=document.createElement('div'); el.className='bl'; el.style.width=b.w+'px'; el.style.height=b.h+'px';
+  el.setAttribute('role','button'); el.innerHTML=balloonSVG(b);
+  el.addEventListener('pointerdown',e=>{e.preventDefault(); tap(b);});
+  b.el=el; gEl.field.appendChild(el); g.list.push(b);
+}
+function tap(b){
+  if(b.done||g.phase!=='play') return;
+  if(b.t){
+    b.done=true; b.el.classList.add('pop'); popSound(); confetti(b);
+    g.caught++; g.total++; renderScore(); flash(rnd(GT.praise[lang])); cheer(900);
+    setTimeout(()=>{b.el.remove(); g.list=g.list.filter(x=>x!==b);},320);
+    if(g.caught>=GOAL){ g.running=false; g.phase='ending';
+      setTimeout(()=>{ g.list.forEach(x=>x.el.classList.add('bye')); cheer(0); showEnd(true); },700); }
+  } else {
+    b.el.classList.remove('nope'); void b.el.offsetWidth; b.el.classList.add('nope');
+    flash(GT.nope[lang]+'  '+(lang==='tr'?g.rule.htr:g.rule.hen),1700);
+  }
+}
+function confetti(b){
+  const cx=b.x+b.w/2, cy=b.y+b.w*.55, cols=[COL[b.c],'#f4c430','#ffffff','#3fa55b'];
+  for(let i=0;i<10;i++){ const d=document.createElement('i'); d.className='conf'; const a=Math.random()*Math.PI*2, r=40+Math.random()*50;
+    d.style.cssText=`left:${cx}px;top:${cy}px;background:${cols[i%4]};--dx:${Math.cos(a)*r}px;--dy:${Math.sin(a)*r}px`;
+    gEl.sky.appendChild(d); setTimeout(()=>d.remove(),800); }
+}
+function tick(t){
+  const dt=Math.min(.05,(t-(g.last||t))/1000); g.last=t;
+  if(g.running){ g.spawnIn-=dt; const maxOn=g.level<3?4:5;
+    if(g.spawnIn<=0 && g.list.filter(b=>!b.done).length<maxOn){ spawn(); g.spawnIn=Math.max(1.05,1.7-g.level*.06); } }
+  for(const b of g.list){ if(g.phase!=='start') b.y-=b.v*dt;
+    b.x=b.x0+Math.sin(t/900+b.ph)*7; b.el.style.transform=`translate(${b.x}px,${b.y}px)`;
+    if(b.y<-b.h-10){ b.el.remove(); b.gone=true; } }
+  g.list=g.list.filter(b=>!b.gone);
+  if(g.open) g.raf=requestAnimationFrame(tick);
+}
+function openGame(){
+  if(g.open) return;
+  g.open=true; gEl.game.hidden=false; document.body.style.overflow='hidden';
+  try{history.pushState({game:1},'');}catch(e){}
+  g.level=1; g.total=0; g.caught=0; pickRule(); renderScore(); gLabels(); showStart(true); cheer(1500);
+  try{ if(!g.audio) g.audio=new (window.AudioContext||window.webkitAudioContext)(); g.audio.resume&&g.audio.resume(); }catch(e){}
+  g.last=0; cancelAnimationFrame(g.raf); g.raf=requestAnimationFrame(tick);
+  $('g-start').focus();
+}
+function hideGame(){
+  if(!g.open) return;
+  g.open=false; g.running=false; cancelAnimationFrame(g.raf);
+  try{speechSynthesis.cancel();}catch(e){}
+  gEl.field.innerHTML=''; g.list=[]; gEl.game.hidden=true; document.body.style.overflow='';
+  $('gamebtn').focus();
+}
+function closeGame(){ if(history.state&&history.state.game){ history.back(); } else hideGame(); }
+addEventListener('popstate',()=>hideGame());
+$('gamebtn').onclick=openGame;
+$('g-close').onclick=closeGame;
+$('g-say').onclick=()=>speak(g.rule[lang]);
+$('g-lang').onclick=()=>{ lang=lang==='tr'?'en':'tr'; try{localStorage.setItem('nyc-lang',lang)}catch(e){} renderAll(); speak(g.rule[lang]); };
+addEventListener('keydown',e=>{ if(g.open&&e.key==='Escape') closeGame(); });
+addEventListener('resize',()=>{ if(g.open) measure(); });
+try{ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged=()=>{}; }catch(e){}
+
+function renderAll(){renderChrome();renderDay();drawDay();gLabels();}
 $('btn-tr').onclick=()=>{lang='tr';try{localStorage.setItem('nyc-lang',lang)}catch(e){}renderAll();say(mood);};
 $('btn-en').onclick=()=>{lang='en';try{localStorage.setItem('nyc-lang',lang)}catch(e){}renderAll();say(mood);};
 
