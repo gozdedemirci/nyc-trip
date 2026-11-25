@@ -1,0 +1,753 @@
+<title>New York Family Trip</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: phone-first single column — cartoon header, day tabs, sticky illustrated map, then the day's stop cards. */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --surface-2:#f7f3ea; --ink:#1e2a33; --muted:#5b6974; --line:#dbe3e8;
+  --water:#bfdaea; --water-ink:#5b8fb0; --land:#f7f0e2; --land-edge:#e4d6bb; --park:#cfe0a9; --park-edge:#a9c47a;
+  --thu:#d55a22; --fri:#a61e2b; --sat:#16788a; --gold:#e3a420; --pin-ink:#ffffff; --halo:#f7f0e2;
+  --display:"Baloo 2","Trebuchet MS",system-ui,sans-serif;
+  --body:"Nunito","Segoe UI",system-ui,-apple-system,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1820; --surface:#18242f; --surface-2:#1e2c38; --ink:#edf2f5; --muted:#9fb0bd; --line:#2a3a47;
+  --water:#163247; --water-ink:#6f9fc0; --land:#25313b; --land-edge:#34434f; --park:#2c4630; --park-edge:#3f6343;
+  --thu:#f07a3e; --fri:#e2505c; --sat:#38aec2; --gold:#f2bd45; --pin-ink:#0f1820; --halo:#25313b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1820; --surface:#18242f; --surface-2:#1e2c38; --ink:#edf2f5; --muted:#9fb0bd; --line:#2a3a47;
+  --water:#163247; --water-ink:#6f9fc0; --land:#25313b; --land-edge:#34434f; --park:#2c4630; --park-edge:#3f6343;
+  --thu:#f07a3e; --fri:#e2505c; --sat:#38aec2; --gold:#f2bd45; --pin-ink:#0f1820; --halo:#25313b; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;margin:0}
+.wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button{font:inherit;color:inherit}
+button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offset:2px;border-radius:8px}
+
+/* header */
+header{padding-block:14px 6px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.lang{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px}
+.lang button{border:0;background:none;padding:5px 12px;border-radius:999px;font-weight:800;font-size:13px;letter-spacing:.06em;cursor:pointer;color:var(--muted)}
+.lang button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.dates{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.hero{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:end;margin-top:6px}
+.hero svg{width:150px;height:auto;display:block}
+.hero h1{font-family:var(--display);font-weight:800;font-size:clamp(28px,7vw,40px);line-height:1;margin:0 0 6px;text-wrap:balance}
+.hero p{margin:0 0 10px;color:var(--muted);font-size:15px;text-wrap:pretty}
+
+/* tabs */
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-block:10px 12px}
+.tab{border:2px solid var(--line);background:var(--surface);border-radius:14px;padding:8px 6px;cursor:pointer;text-align:center;min-width:0}
+.tab b{display:block;font-family:var(--display);font-size:18px;line-height:1.1}
+.tab span{font-size:12px;color:var(--muted);font-weight:700}
+.tab[aria-selected="true"]{border-color:var(--c);background:var(--c);color:#fff}
+.tab[aria-selected="true"] span{color:#fff;opacity:.9}
+
+/* day summary */
+.daybar{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px;color:var(--muted);margin-bottom:10px}
+.daybar strong{color:var(--ink)}
+.daytheme{font-family:var(--display);font-size:22px;font-weight:700;margin:0 0 2px;color:var(--c)}
+
+/* map */
+.mapbox{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:4px 8px}
+.map{position:relative;height:min(46vh,420px);border-radius:18px;overflow:hidden;border:1px solid var(--line);background:var(--water);touch-action:none}
+.map svg{width:100%;height:100%;display:block;cursor:grab}
+.map svg:active{cursor:grabbing}
+.mapctl{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:6px}
+.mapctl button{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-weight:800;font-size:18px;cursor:pointer;display:grid;place-items:center}
+.legend{position:absolute;left:8px;bottom:8px;background:color-mix(in srgb,var(--surface) 88%,transparent);border-radius:10px;padding:4px 8px;font-size:11px;font-weight:700;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;max-width:calc(100% - 16px)}
+.legend i{display:inline-block;width:18px;height:0;border-top:3px solid var(--muted);vertical-align:middle;margin-right:4px}
+.legend .lw i{border-top-style:dotted}
+.legend .lf i{border-top:3px dashed var(--water-ink)}
+.lbl{font-family:var(--body);font-weight:800;fill:var(--muted);paint-order:stroke;stroke:var(--halo);stroke-linejoin:round;letter-spacing:.05em}
+.lbl.w{fill:var(--water-ink);stroke:var(--water);font-style:italic;font-weight:700}
+.pin{cursor:pointer}
+
+/* bonus */
+.bonus{display:flex;gap:10px;align-items:flex-start;background:var(--surface-2);border:2px dashed var(--gold);border-radius:14px;padding:10px 12px;margin-block:4px 10px;font-size:14px}
+.bonus b{font-family:var(--display);font-size:16px}
+
+/* stops */
+.stops{list-style:none;margin:0;padding:0 0 40px;display:flex;flex-direction:column;gap:10px}
+.stop{background:var(--surface);border:2px solid transparent;border-radius:16px;padding:12px 14px;cursor:pointer;display:grid;grid-template-columns:40px 1fr 58px;gap:4px 12px;text-align:left;width:100%}
+.pic{grid-column:3;grid-row:1;width:58px;height:58px;background:var(--surface-2);border-radius:14px;padding:5px;overflow:hidden}
+.st-head{grid-column:2;grid-row:1}
+.stop[aria-current="true"]{border-color:var(--c);box-shadow:0 4px 18px color-mix(in srgb,var(--c) 22%,transparent)}
+.num{width:34px;height:34px;border-radius:50%;background:var(--c);color:#fff;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:17px;grid-row:span 2}
+.st-head{min-width:0}
+.time{font-variant-numeric:tabular-nums;font-weight:800;color:var(--c);font-size:14px;letter-spacing:.03em}
+.now{display:inline-block;margin-left:6px;background:var(--gold);color:#1e2a33;border-radius:999px;padding:0 8px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.stop h3{font-family:var(--display);font-size:19px;line-height:1.15;margin:1px 0 0;font-weight:700}
+.st-body{min-width:0;grid-column:2 / span 2}
+.how{display:flex;gap:6px;align-items:flex-start;font-size:13.5px;color:var(--muted);font-weight:600;margin:2px 0 6px}
+.how svg{flex:none;width:18px;height:18px;margin-top:1px}
+.note{margin:0;font-size:15px;text-wrap:pretty}
+.words{margin-top:9px;padding:8px 10px;background:var(--surface-2);border-radius:10px;font-size:13.5px}
+.words small{display:block;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+.words ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px 14px}
+.words li b{font-weight:800}
+.words li span{color:var(--muted)}
+.stop a{color:var(--c);font-weight:800}
+.tips{background:var(--surface);border-radius:16px;padding:12px 14px;font-size:14.5px;margin-bottom:10px}
+.tips h4{margin:0 0 4px;font-family:var(--display);font-size:16px}
+.tips ul{margin:0;padding-left:18px}
+footer{color:var(--muted);font-size:12.5px;padding-block:0 30px;text-align:center}
+/* ---- header cartoon scenes ---- */
+.hero svg{width:165px}
+#art *{transform-box:view-box}
+#art .scene,#art #g-arm-up,#art #d-arm-up,#art #bubble{display:none}
+#art.s-thu .p-thu,#art.s-fri .p-fri,#art.s-sat .p-sat{display:inline}
+#art.greet #g-arm-up,#art.greet #d-arm-up{display:inline}
+#art.greet #g-arm-down,#art.greet #d-arm-down{display:none}
+#art.says #bubble{display:inline;animation:pop .35s cubic-bezier(.3,1.6,.6,1) both;transform-origin:110px 30px}
+#art.s-sat .shadow{display:none}
+.leaves path{animation:fall 9s linear infinite}
+.leaves .lf2{animation-delay:-3s;animation-duration:11s}
+.leaves .lf3{animation-delay:-6s;animation-duration:10s}
+@keyframes fall{0%{transform:translate(0,-30px) rotate(0)}100%{transform:translate(-14px,215px) rotate(320deg)}}
+@keyframes pop{0%{transform:scale(.2);opacity:0}100%{transform:scale(1);opacity:1}}
+/* greeting: wave both hands */
+.wave{animation:wave .55s ease-in-out 5 alternate}
+.w2{animation-delay:.12s}
+@keyframes wave{0%{transform:rotate(-14deg)}100%{transform:rotate(16deg)}}
+#art.greet #pg,#art.greet #pd{animation:hop .5s ease-out 2 alternate}
+#art.greet #pd{animation-delay:.15s}
+@keyframes hop{0%{transform:translateY(0)}100%{transform:translateY(-5px)}}
+/* Thursday: balloon rises and bobs */
+#art.s-thu .rise{animation:rise 1.1s cubic-bezier(.2,.9,.3,1) both}
+#art.s-thu .bob{animation:bob 2.6s 1.1s ease-in-out infinite alternate;transform-origin:21px 136px}
+@keyframes rise{0%{transform:translateY(70px);opacity:0}100%{transform:translateY(0);opacity:1}}
+@keyframes bob{0%{transform:rotate(-5deg)}100%{transform:rotate(5deg)}}
+/* Friday: walking bounce, swinging bags */
+#art.s-fri #pg,#art.s-fri #pm,#art.s-fri #pd{animation:step .38s ease-in-out 8 alternate}
+#art.s-fri #pm{animation-delay:.19s}
+@keyframes step{0%{transform:translateY(0)}100%{transform:translateY(-4px)}}
+#art.s-fri .swing{animation:swing .6s ease-in-out infinite alternate}
+#art.s-fri .s2{animation-delay:-.3s}
+@keyframes swing{0%{transform:rotate(-12deg)}100%{transform:rotate(12deg)}}
+#art.s-fri .sparkle path{animation:twinkle 1.2s ease-in-out infinite alternate;transform-origin:center;transform-box:fill-box}
+@keyframes twinkle{0%{opacity:.2;transform:scale(.6)}100%{opacity:1;transform:scale(1.1)}}
+/* Saturday: ferry slides in, they jump on, then gently rock */
+#art.s-sat .sail{animation:sailin 1s cubic-bezier(.2,.8,.3,1) both}
+#art.s-sat .slide-water{animation:fadein .5s both}
+#art.s-sat #trio{animation:jump .7s .95s cubic-bezier(.3,0,.4,1) both}
+#art.s-sat #rock{animation:rock 2.4s 1.7s ease-in-out infinite alternate;transform-origin:110px 200px}
+#art.s-sat .waves{animation:waves 2s linear infinite}
+@keyframes sailin{0%{transform:translateX(240px)}100%{transform:translateX(0)}}
+@keyframes fadein{0%{opacity:0}100%{opacity:1}}
+@keyframes jump{0%{transform:translateY(0)}45%{transform:translateY(-30px)}75%{transform:translateY(-4px)}100%{transform:translateY(-6px)}}
+@keyframes rock{0%{transform:rotate(-1.8deg)}100%{transform:rotate(1.8deg)}}
+@keyframes waves{0%{transform:translateX(0)}100%{transform:translateX(24px)}}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}#art.s-sat #trio{transform:translateY(-6px)}}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="top">
+    <span class="dates" id="dates"></span>
+    <div class="lang" role="group" aria-label="Language">
+      <button id="btn-tr" type="button">TR</button>
+      <button id="btn-en" type="button">EN</button>
+    </div>
+  </div>
+  <div class="hero">
+    <svg id="art" viewBox="0 0 220 212" role="img" aria-label="Cartoon of the three of us, arm in arm">
+      <!-- falling leaves -->
+      <g class="leaves">
+        <path class="lf1" d="M14 22c6-6 14-4 14-4s-1 9-8 12-8-2-6-8z" fill="#e3a420"/>
+        <path class="lf2" d="M196 30c5-7 13-6 13-6s0 9-7 12-7-1-6-6z" fill="#d55a22"/>
+        <path class="lf3" d="M186 4c4-5 10-4 10-4s0 7-5 9-6-1-5-5z" fill="#a61e2b"/>
+      </g>
+      <!-- Thursday: parade balloon on a string held by daughter -->
+      <g class="scene p-thu"><g class="rise"><g class="bob">
+        <path d="M21 136 Q12 96 17 56" stroke="var(--muted)" stroke-width="1.2" fill="none"/>
+        <ellipse cx="17" cy="40" rx="14" ry="16" fill="var(--thu)"/>
+        <ellipse cx="12" cy="34" rx="4" ry="5" fill="#fff" opacity=".45"/>
+        <path d="M14 56 h6 l-3 4z" fill="var(--thu)"/>
+        <circle cx="12" cy="40" r="1.6" fill="#1e2a33"/><circle cx="22" cy="40" r="1.6" fill="#1e2a33"/>
+        <path d="M13 46 q4 3 8 0" stroke="#1e2a33" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+      </g></g></g>
+      <ellipse class="shadow" cx="110" cy="192" rx="98" ry="7" fill="#000" opacity=".08"/>
+      <!-- Saturday: water -->
+      <g class="scene p-sat"><g class="slide-water">
+        <rect x="-20" y="192" width="260" height="22" fill="var(--water)"/>
+        <path class="waves" d="M-40 198 q6 -4 12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0" stroke="var(--water-ink)" stroke-width="1.5" fill="none"/>
+      </g></g>
+      <g id="rock">
+      <g id="trio">
+      <!-- ===== Daughter (left) ===== -->
+      <g id="pg">
+        <ellipse cx="42" cy="186" rx="9" ry="5" fill="#b9bcc2"/><ellipse cx="60" cy="186" rx="9" ry="5" fill="#b9bcc2"/>
+        <rect x="37" y="128" width="12" height="57" rx="5" fill="#d9dbe0"/><rect x="51" y="128" width="12" height="57" rx="5" fill="#d9dbe0"/>
+        <g id="g-arm-down">
+          <path d="M33 118 L22 136" stroke="#8b8a6e" stroke-width="9" stroke-linecap="round"/>
+          <circle cx="21" cy="138" r="4.5" fill="#f3cfae"/>
+          <!-- Friday bag -->
+          <g class="scene p-fri"><g class="swing" style="transform-origin:21px 138px">
+            <path d="M16 142 v-3 a5 5 0 0 1 10 0 v3" stroke="#1e2a33" stroke-width="1.5" fill="none"/>
+            <path d="M11 142 h20 l2 22 h-24z" fill="var(--fri)"/>
+            <path d="M21 148 l1.6 3.4 l3.7 .4 l-2.8 2.5 l.8 3.6 l-3.3 -1.9 l-3.3 1.9 l.8 -3.6 l-2.8 -2.5 l3.7 -.4z" fill="#fff"/>
+          </g></g>
+        </g>
+        <g id="g-arm-up" class="wave" style="transform-origin:33px 100px">
+          <path d="M33 100 L22 80" stroke="#8b8a6e" stroke-width="9" stroke-linecap="round"/>
+          <circle cx="21" cy="76" r="4.8" fill="#f3cfae"/>
+        </g>
+        <path d="M30 92 Q50 82 70 92 L73 136 L27 136 Z" fill="#8b8a6e"/>
+        <path d="M50 92 L50 136" stroke="#6f6e55" stroke-width="1.5"/>
+        <path d="M68 100 L84 112" stroke="#8b8a6e" stroke-width="9" stroke-linecap="round"/>
+        <rect x="45" y="74" width="10" height="12" rx="3" fill="#f3cfae"/>
+        <ellipse cx="50" cy="88" rx="13" ry="6" fill="#b3202a"/>
+        <rect x="43" y="88" width="9" height="42" rx="3" fill="#b3202a"/>
+        <path d="M45 96h5M45 104h5M45 112h5M45 120h5" stroke="#8d1720" stroke-width="1.2"/>
+        <circle cx="59" cy="47" r="7" fill="#6b4a36"/>
+        <circle cx="50" cy="62" r="17" fill="#f3cfae"/>
+        <path d="M33 61 Q33 43 50 43 Q67 43 67 61 Q62 51 50 51 Q38 51 33 61Z" fill="#6b4a36"/>
+        <circle cx="44" cy="63" r="5.2" fill="#ffffff" fill-opacity=".35" stroke="#2b2b2b" stroke-width="1.7"/>
+        <circle cx="56" cy="63" r="5.2" fill="#ffffff" fill-opacity=".35" stroke="#2b2b2b" stroke-width="1.7"/>
+        <path d="M49 63h2" stroke="#2b2b2b" stroke-width="1.5"/>
+        <circle cx="44" cy="63.5" r="1.4" fill="#2b2b2b"/><circle cx="56" cy="63.5" r="1.4" fill="#2b2b2b"/>
+        <circle cx="40" cy="70" r="2.6" fill="#ef8f8f" opacity=".5"/><circle cx="60" cy="70" r="2.6" fill="#ef8f8f" opacity=".5"/>
+        <path d="M45 71 Q50 76 55 71" stroke="#8a4a3a" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      </g>
+      <!-- ===== Mom (middle) ===== -->
+      <g id="pm">
+        <ellipse cx="102" cy="186" rx="9" ry="5" fill="#ffffff" stroke="#c9ccd2"/><ellipse cx="119" cy="186" rx="9" ry="5" fill="#ffffff" stroke="#c9ccd2"/>
+        <rect x="98" y="158" width="10" height="27" rx="4" fill="#26262b"/><rect x="113" y="158" width="10" height="27" rx="4" fill="#26262b"/>
+        <path d="M88 94 Q110 82 132 94 L137 164 L83 164 Z" fill="#f8f8f8" stroke="#d3d7dd" stroke-width="1.2"/>
+        <path d="M86 108h48M85 122h50M84 136h52M84 150h52" stroke="#dfe2e7" stroke-width="1.4"/>
+        <path d="M110 92 L110 164" stroke="#cfd3d9" stroke-width="1.2"/>
+        <path d="M90 102 L82 114" stroke="#f1f1f1" stroke-width="10" stroke-linecap="round"/>
+        <path d="M130 102 L140 114" stroke="#f1f1f1" stroke-width="10" stroke-linecap="round"/>
+        <ellipse cx="110" cy="92" rx="14" ry="6" fill="#7d1f2e"/>
+        <path d="M90 66 Q90 38 110 38 Q130 38 130 66 Q130 86 110 92 Q90 86 90 66Z" fill="#c9cbd1"/>
+        <path d="M93 80 Q110 100 127 80 L131 94 Q110 104 89 94Z" fill="#c9cbd1"/>
+        <ellipse cx="110" cy="65" rx="11.5" ry="13.5" fill="#f2cba9"/>
+        <rect x="99.5" y="58" width="9.5" height="7" rx="3.2" fill="#2a2a30"/><rect x="111" y="58" width="9.5" height="7" rx="3.2" fill="#2a2a30"/>
+        <path d="M109 61h2" stroke="#2a2a30" stroke-width="1.5"/>
+        <circle cx="102" cy="71" r="2.4" fill="#ef8f8f" opacity=".5"/><circle cx="118" cy="71" r="2.4" fill="#ef8f8f" opacity=".5"/>
+        <path d="M105 72 Q110 77 115 72" stroke="#8a4a3a" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      </g>
+      <!-- ===== Dad (right) ===== -->
+      <g id="pd">
+        <ellipse cx="160" cy="186" rx="10" ry="5" fill="#1d1e22"/><ellipse cx="180" cy="186" rx="10" ry="5" fill="#1d1e22"/>
+        <path d="M151 188h18M171 188h18" stroke="#f1f1f1" stroke-width="1.6"/>
+        <rect x="156" y="130" width="12" height="55" rx="5" fill="#24252b"/><rect x="172" y="130" width="12" height="55" rx="5" fill="#24252b"/>
+        <path d="M148 92 Q170 81 192 92 L195 138 L145 138 Z" fill="#2e3037"/>
+        <path d="M170 90 L170 138" stroke="#4a4d57" stroke-width="1.4"/>
+        <path d="M152 100 L138 114" stroke="#2e3037" stroke-width="10" stroke-linecap="round"/>
+        <g id="d-arm-down">
+          <path d="M190 100 L198 130" stroke="#2e3037" stroke-width="10" stroke-linecap="round"/>
+          <circle cx="199" cy="133" r="4.5" fill="#e8bf9c"/>
+          <g class="scene p-fri"><g class="swing s2" style="transform-origin:199px 133px">
+            <path d="M194 137 v-3 a5 5 0 0 1 10 0 v3" stroke="#1e2a33" stroke-width="1.5" fill="none"/>
+            <rect x="189" y="137" width="20" height="20" rx="2" fill="var(--gold)"/>
+            <path d="M193 143 h12" stroke="#fff" stroke-width="2"/>
+          </g></g>
+        </g>
+        <g id="d-arm-up" class="wave w2" style="transform-origin:190px 100px">
+          <path d="M190 100 L201 80" stroke="#2e3037" stroke-width="10" stroke-linecap="round"/>
+          <circle cx="202" cy="76" r="4.8" fill="#e8bf9c"/>
+        </g>
+        <rect x="165" y="74" width="10" height="12" rx="3" fill="#e8bf9c"/>
+        <path d="M160 86 Q170 94 180 86" stroke="#3b3e47" stroke-width="5" fill="none"/>
+        <circle cx="170" cy="62" r="17" fill="#e8bf9c"/>
+        <path d="M153.5 58 q-1 9 3 12M186.5 58 q1 9 -3 12" stroke="#c4c4c4" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+        <path d="M153 57 Q153 39 170 39 Q187 39 187 57Z" fill="#1b1c20"/>
+        <ellipse cx="170" cy="57" rx="20" ry="4" fill="#111215"/>
+        <rect x="165" y="45" width="10" height="3" rx="1" fill="#e9e9e9"/>
+        <path d="M161 61.5h5M174 61.5h5" stroke="#9a9a9a" stroke-width="1.6" stroke-linecap="round"/>
+        <circle cx="164" cy="65" r="1.6" fill="#2b2b2b"/><circle cx="176" cy="65" r="1.6" fill="#2b2b2b"/>
+        <circle cx="160" cy="71" r="2.6" fill="#ef8f8f" opacity=".45"/><circle cx="180" cy="71" r="2.6" fill="#ef8f8f" opacity=".45"/>
+        <path d="M163 71 Q170 78 177 71" stroke="#7a4030" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </g>
+      </g><!-- /trio -->
+      <!-- Saturday: ferry hull slides in under their feet -->
+      <g class="scene p-sat"><g class="sail">
+        <path d="M14 180 H206 L194 204 H28 Z" fill="var(--sat)"/>
+        <path d="M18 186 H202" stroke="#fff" stroke-width="2" opacity=".8"/>
+        <circle cx="48" cy="195" r="3.2" fill="#fff" opacity=".85"/><circle cx="80" cy="195" r="3.2" fill="#fff" opacity=".85"/><circle cx="112" cy="195" r="3.2" fill="#fff" opacity=".85"/><circle cx="144" cy="195" r="3.2" fill="#fff" opacity=".85"/><circle cx="176" cy="195" r="3.2" fill="#fff" opacity=".85"/>
+        <path d="M206 180 v-14 h-6 v14" fill="var(--muted)"/><path d="M200 166 l12 4 l-12 4z" fill="var(--gold)"/>
+      </g></g>
+      </g><!-- /rock -->
+      <!-- Friday sparkles -->
+      <g class="scene p-fri sparkle">
+        <path d="M8 120 l2 5 l5 2 l-5 2 l-2 5 l-2 -5 l-5 -2 l5 -2z" fill="var(--gold)"/>
+        <path d="M212 112 l1.6 4 l4 1.6 l-4 1.6 l-1.6 4 l-1.6 -4 l-4 -1.6 l4 -1.6z" fill="var(--gold)"/>
+      </g>
+      <!-- speech bubble -->
+      <g id="bubble">
+        <rect x="66" y="2" width="88" height="24" rx="12" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5"/>
+        <path d="M104 26 l6 7 l2 -7z" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M104.6 25.2 h7.6" stroke="var(--surface)" stroke-width="2.6"/>
+        <text id="bubble-t" x="110" y="18.5" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="13" fill="var(--ink)"></text>
+      </g>
+    </svg>
+    <div>
+      <h1 id="title"></h1>
+      <p id="subtitle"></p>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist" id="tabs"></nav>
+
+<p class="daytheme" id="daytheme"></p>
+<div class="daybar" id="daybar"></div>
+</div>
+
+<div class="wrap mapbox">
+  <div class="map" id="mapwrap">
+    <svg id="map" preserveAspectRatio="xMidYMid meet" aria-label="Map"></svg>
+    <div class="mapctl">
+      <button type="button" id="zin" aria-label="Zoom in">+</button>
+      <button type="button" id="zout" aria-label="Zoom out">−</button>
+      <button type="button" id="zfit" aria-label="Show whole day">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+      </button>
+    </div>
+    <div class="legend" id="legend"></div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div id="bonus"></div>
+  <div class="tips" id="tips"></div>
+  <ol class="stops" id="stops"></ol>
+  <footer id="foot"></footer>
+</div>
+
+<script>
+/* ---------- geography ---------- */
+const K=6000, CL=0.757, LNG0=-74.075, LAT0=40.83;
+const P=(lat,lng)=>[ (lng-LNG0)*CL*K, (LAT0-lat)*K ];
+const FULL={x:0,y:0,w:0.15*CL*K,h:(LAT0-40.66)*K};
+const poly=pts=>'M'+pts.map(([a,b])=>P(a,b).map(v=>v.toFixed(1)).join(',')).join('L')+'Z';
+
+const MANHATTAN=[[40.7005,-74.0150],[40.7040,-74.0185],[40.7100,-74.0182],[40.7180,-74.0140],[40.7280,-74.0112],[40.7400,-74.0100],[40.7500,-74.0075],[40.7600,-74.0010],[40.7700,-73.9935],[40.7800,-73.9870],[40.7900,-73.9800],[40.8000,-73.9720],[40.8100,-73.9650],[40.8350,-73.9500],[40.8350,-73.9330],[40.8100,-73.9330],[40.8000,-73.9320],[40.7950,-73.9360],[40.7850,-73.9420],[40.7760,-73.9430],[40.7650,-73.9540],[40.7550,-73.9625],[40.7450,-73.9710],[40.7350,-73.9740],[40.7250,-73.9720],[40.7150,-73.9760],[40.7100,-73.9850],[40.7060,-73.9970],[40.7020,-74.0090]];
+const BROOKLYN=[[40.835,-73.926],[40.800,-73.926],[40.785,-73.935],[40.770,-73.938],[40.757,-73.948],[40.745,-73.957],[40.735,-73.960],[40.722,-73.962],[40.712,-73.967],[40.7035,-73.975],[40.7040,-73.9925],[40.7005,-73.9990],[40.693,-74.0025],[40.686,-74.005],[40.678,-74.015],[40.672,-74.020],[40.665,-74.014],[40.655,-74.025],[40.655,-73.90],[40.835,-73.90]];
+const JERSEY=[[40.835,-74.09],[40.835,-73.962],[40.810,-73.983],[40.790,-73.998],[40.775,-74.008],[40.765,-74.015],[40.755,-74.021],[40.745,-74.0245],[40.738,-74.0262],[40.732,-74.0282],[40.725,-74.0308],[40.716,-74.0328],[40.712,-74.0350],[40.709,-74.0380],[40.705,-74.0408],[40.700,-74.0440],[40.695,-74.0500],[40.690,-74.0550],[40.683,-74.0620],[40.675,-74.0700],[40.655,-74.0800],[40.655,-74.09]];
+const CPARK=[[40.7681,-73.9819],[40.7644,-73.9730],[40.7968,-73.9493],[40.8006,-73.9580]];
+
+/* ---------- itinerary ---------- */
+const HOME={ll:[40.7965,-73.9710]};
+const DAYS=[
+{ id:'thu', date:'2026-11-26', color:'--thu',
+  tab:{tr:['Perşembe','26 Kasım'],en:['Thursday','Nov 26']},
+  theme:{tr:'Şükran Günü: Geçit töreni, şehir merkezi ve Brooklyn',en:'Thanksgiving: the parade, downtown and Brooklyn'},
+  walk:'~6 km', sunset:'16:31',
+  weather:{tr:'Sabah ~1°C, öğleden sonra ~8°C (Kasım ortalaması)',en:'Morning ~34°F, afternoon ~46°F (typical late November)'},
+  tips:{tr:['Tören sabahı çok soğuk: bere, eldiven, kat kat giyin. Katlanır tabure ve termosta sıcak çay getirin.','Bugün dükkanların çoğu kapalı; restoranların bir kısmı açık. Yemek yerlerinin saatini önceden kontrol edin.','Yorulursanız: metro yerine taksi her zaman bir seçenek.'],
+        en:['Parade morning is very cold: hats, gloves, layers. Bring folding stools and hot tea in a thermos.','Most shops are closed today; some restaurants are open. Check food spots before you go.','Tired? A taxi is always an option instead of the subway.']},
+  bonus:{until:'2026-11-25',tr:['Bu akşam (Çarşamba): Balon şişirme','Doğa Tarihi Müzesi\'nin etrafında (77.–81. Cadde) dev balonlar şişiriliyor. Evden 20 dk yürüyüş ve törenden çok daha sakin. Saatleri macys.com\'dan kontrol edin.'],en:['Tonight (Wednesday): balloon inflation','The giant balloons are inflated around the Natural History Museum (77th–81st St). It\'s a 20-minute walk from home and much calmer than the parade. Check hours on macys.com.'],ll:[40.7813,-73.9740]},
+  stops:[
+  {t:'06:45',ll:[40.7768,-73.9762],mode:'walk',name:{tr:'Geçit töreni: Central Park West & 72. Cadde',en:'Parade: Central Park West & 72nd St'},
+   how:{tr:'Evden yürüyerek ~25 dk',en:'Walk from home, ~25 min'},
+   note:{tr:'Macy\'s geçit töreni 08:30\'da 77. Cadde\'den başlar. Caddenin batı kaldırımından izleyin; erken gelip iyi yer kapın. Dev balonlar ilk bir buçuk saatte geçer.',en:'The Macy\'s parade starts at 8:30 at 77th St. Watch from the west sidewalk and come early for a good spot. The giant balloons pass in the first 90 minutes.'},
+   words:[['parade','geçit töreni'],['balloon','balon'],['crowd','kalabalık']]},
+  {t:'10:00',ll:[40.7889,-73.9762],mode:'walk',name:{tr:'86. Cadde istasyonu (1 treni)',en:'86th St station (1 train)'},
+   how:{tr:'Yürüyerek ~12 dk kuzeye',en:'Walk ~12 min north'},
+   note:{tr:'79. Cadde istasyonu tören sonrası çok kalabalık olur, o yüzden 86. Cadde\'den biniyoruz. Güneye giden (Downtown) 1 trenine binin, Christopher St\'te inin (~20 dk).',en:'79th St station gets packed after the parade, so we board at 86th St. Take the downtown 1 train and get off at Christopher St (~20 min).'},
+   words:[['subway','metro'],['downtown','güneye / merkeze'],['station','istasyon']]},
+  {t:'11:00',ll:[40.7308,-73.9973],mode:'subway',name:{tr:'Washington Square Park',en:'Washington Square Park'},
+   how:{tr:'1 treni → Christopher St, sonra 8 dk yürüyüş',en:'1 train → Christopher St, then 8 min walk'},
+   note:{tr:'Ünlü beyaz mermer kemer ve büyük çeşme. Sokak müzisyenleri, satranç oynayanlar; New York Üniversitesi\'nin kalbi.',en:'The famous white marble arch and the big fountain. Street musicians and chess players; the heart of NYU.'},
+   words:[['arch','kemer'],['fountain','çeşme'],['square','meydan']]},
+  {t:'11:45',ll:[40.7300,-74.0006],mode:'walk',name:{tr:'Öğle yemeği: MacDougal St',en:'Lunch: MacDougal St'},
+   how:{tr:'Parktan 3 dk yürüyüş',en:'3 min walk from the park'},
+   note:{tr:'Küçük falafel ve shawarma dükkanlarıyla dolu bir sokak (ör. 1971\'den beri açık Mamoun\'s). Bayram günü açık olup olmadığını kontrol edin.',en:'A street full of small falafel and shawarma shops (e.g. Mamoun\'s, open since 1971). Check that it\'s open on the holiday.'},
+   words:[['lunch','öğle yemeği'],['to go','paket'],['the check','hesap']]},
+  {t:'12:45',ll:[40.7253,-74.0005],mode:'walk',name:{tr:'SoHo: Greene & Prince sokakları',en:'SoHo: Greene & Prince St'},
+   how:{tr:'Güneye 10 dk yürüyüş',en:'Walk 10 min south'},
+   note:{tr:'1800\'lerden kalma dökme demir binalar ve arnavut kaldırımı sokaklar. Dükkanlar bugün çoğunlukla kapalı ama sokaklar sakin ve fotoğraf için harika.',en:'Cast-iron buildings from the 1800s and cobblestone streets. Shops are mostly closed today, but the streets are quiet and great for photos.'},
+   words:[['street','sokak'],['building','bina'],['shop','dükkan']]},
+  {t:'14:15',ll:[40.7115,-74.0128],mode:'subway',name:{tr:'9/11 Anıtı havuzları ve Oculus',en:'9/11 Memorial pools & the Oculus'},
+   how:{tr:'Spring St\'ten C/E treni, 2 durak → WTC (ya da taksi 10 dk)',en:'C/E train from Spring St, 2 stops → WTC (or 10 min taxi)'},
+   note:{tr:'İkiz Kulelerin tam yerinde iki büyük şelale havuz; kenarlarında 2.983 isim yazılı. Sessiz ve duygusal bir yer. Hemen yanındaki beyaz, kanat gibi Oculus binasının içine de girin.',en:'Two huge waterfall pools in the exact footprints of the Twin Towers, with 2,983 names on the edges. A quiet, moving place. Step inside the white, wing-shaped Oculus next door too.'},
+   words:[['memorial','anıt'],['pool','havuz'],['tower','kule']]},
+  {t:'15:30',ll:[40.7032,-73.9894],mode:'subway',name:{tr:'Dumbo: Manhattan Köprüsü manzarası',en:'Dumbo: the Manhattan Bridge view'},
+   how:{tr:'Fulton St\'ten A/C treni, 1 durak → High St (Brooklyn)',en:'A/C train from Fulton St, 1 stop → High St (Brooklyn)'},
+   note:{tr:'Washington St ile Water St\'in köşesi: köprünün altından Empire State\'i gösteren o ünlü fotoğraf karesi.',en:'The corner of Washington St & Water St: the famous photo of the bridge framing the Empire State Building.'},
+   words:[['bridge','köprü'],['view','manzara'],['photo','fotoğraf']]},
+  {t:'16:10',ll:[40.7015,-73.9958],mode:'walk',name:{tr:'Brooklyn Bridge Park, Pier 1: Gün batımı',en:'Brooklyn Bridge Park, Pier 1: sunset'},
+   how:{tr:'Yürüyerek 8 dk',en:'Walk 8 min'},
+   note:{tr:'Gün batımı ~16:30. Güneş batarken Manhattan\'ın ışıkları yanar. Nehir kenarı rüzgarlı, sıkı giyinin.',en:'Sunset is ~4:30pm. Manhattan lights up as the sun goes down. It\'s windy by the river, so bundle up.'},
+   words:[['sunset','gün batımı'],['skyline','şehir silueti'],['windy','rüzgarlı']]},
+  {t:'17:15',ll:[40.7036,-73.9912],mode:'walk',name:{tr:'Time Out Market: akşam yemeği',en:'Time Out Market: dinner'},
+   how:{tr:'Yürüyerek 6 dk',en:'Walk 6 min'},
+   note:{tr:'Eski bir depo binasında birçok yemek tezgahı ve manzaralı çatı katı. Şükran Günü saatlerini kontrol edin; kapalıysa Dumbo\'da başka restoranlar var.',en:'Many food stalls in an old warehouse, plus a rooftop with a view. Check Thanksgiving hours; if it\'s closed, Dumbo has other restaurants.'},
+   words:[['dinner','akşam yemeği'],['rooftop','çatı katı'],['open / closed','açık / kapalı']]},
+  {t:'18:45',ll:[40.7939,-73.9724],mode:'subway',name:{tr:'Eve dönüş: 2/3 treni',en:'Home: 2/3 train'},
+   how:{tr:'Clark St\'ten 2 veya 3 treni → 96. Cadde, aktarmasız (~30 dk)',en:'2 or 3 train from Clark St → 96th St, no transfer (~30 min)'},
+   note:{tr:'Clark St istasyonu Dumbo\'dan 12 dk yürüme. Tek trenle eve! 96. Cadde\'den eve 5 dk.',en:'Clark St station is a 12 min walk from Dumbo. One train all the way home! 5 min walk from 96th St.'},
+   words:[['transfer','aktarma'],['express','ekspres'],['home','ev']]},
+  ]},
+{ id:'fri', date:'2026-11-27', color:'--fri',
+  tab:{tr:['Cuma','27 Kasım'],en:['Friday','Nov 27']},
+  theme:{tr:'Park, Cuma namazı, Met Müzesi ve 5. Cadde',en:'The park, Friday prayer, the Met and Fifth Avenue'},
+  walk:'~6 km', sunset:'16:30',
+  weather:{tr:'~4°C ile 9°C arası (Kasım ortalaması)',en:'~39°F to 48°F (typical late November)'},
+  tips:{tr:['Bugün Black Friday: mağazalar çok kalabalık. Macy\'s\'e akşam gidiyoruz, o saatte daha sakin olur.','En uzun gün bu. Met\'ten sonra 5. Cadde\'ye taksi veya otobüsle inin.','Cuma namazı saatini sabah iccny.org\'dan teyit edin.'],
+        en:['It\'s Black Friday: stores are very busy. We go to Macy\'s in the evening, when it\'s calmer.','This is the longest day. Take a taxi or bus down to Fifth Avenue after the Met.','Confirm the Friday prayer time on iccny.org in the morning.']},
+  stops:[
+  {t:'10:00',ll:[40.7925,-73.9637],mode:'walk',name:{tr:'Central Park\'a giriş (W 96. Cadde)',en:'Into Central Park (W 96th St)'},
+   how:{tr:'Evden yürüyerek ~12 dk',en:'Walk from home, ~12 min'},
+   note:{tr:'Parkın içinden doğu tarafına yürüyoruz. Yolda sincaplara bakın!',en:'We walk through the park to the east side. Look out for squirrels!'},
+   words:[['park','park'],['path','patika'],['squirrel','sincap']]},
+  {t:'10:25',ll:[40.7818,-73.9650],mode:'walk',name:{tr:'Rezervuar (Jacqueline Kennedy Onassis)',en:'The Reservoir (Jacqueline Kennedy Onassis)'},
+   how:{tr:'Park içinde 10 dk yürüyüş',en:'10 min walk in the park'},
+   note:{tr:'Büyük gölün etrafında düz bir yürüyüş yolu. Güneye bakınca Midtown gökdelenleri suya yansır; sonbahar yaprakları belki hâlâ dalda.',en:'A flat path around the big lake. Look south to see the Midtown towers reflected in the water; some autumn leaves may still be on the trees.'},
+   words:[['lake','göl'],['leaves','yapraklar'],['skyscraper','gökdelen']]},
+  {t:'11:30',ll:[40.7840,-73.9572],mode:'walk',name:{tr:'5. Cadde & 90. Cadde: kahve molası',en:'Fifth Ave & 90th St: coffee break'},
+   how:{tr:'Engineers\' Gate kapısından parktan çıkış',en:'Leave the park at Engineers\' Gate'},
+   note:{tr:'Madison veya Lexington caddesinde kısa bir kahve/çay molası. Camiye buradan ~15 dk.',en:'A short coffee or tea break on Madison or Lexington Ave. The mosque is ~15 min from here.'},
+   words:[['coffee','kahve'],['break','mola'],['east','doğu']]},
+  {t:'12:30',ll:[40.7858,-73.9497],mode:'walk',name:{tr:'New York İslam Kültür Merkezi: Cuma namazı',en:'Islamic Cultural Center of NY: Friday prayer'},
+   how:{tr:'3. Cadde & 96. Cadde, yürüyerek ~15 dk',en:'3rd Ave & 96th St, walk ~15 min'},
+   note:{tr:'Manhattan\'ın en büyük camisi; kubbesi ve minaresi yandan görünür. Kadınlar bölümü var. Cuma kalabalık olur, erken gidin. Saat genelde 12:30–13:00 civarı.',en:'Manhattan\'s largest mosque, with its dome and minaret visible from the street. There is a women\'s section. Fridays are busy, so arrive early. Prayer is usually around 12:30–1:00.'},
+   link:['iccny.org','https://www.iccny.org'],
+   words:[['mosque','cami'],['prayer','namaz'],['Friday','Cuma']]},
+  {t:'13:45',ll:[40.7840,-73.9515],mode:'walk',name:{tr:'Öğle yemeği: 2./3. Cadde civarı',en:'Lunch near 2nd/3rd Ave'},
+   how:{tr:'Camiden birkaç dakika',en:'A few minutes from the mosque'},
+   note:{tr:'Bu bölgede bol seçenek var. Acele yok; Met akşam 21:00\'e kadar açık.',en:'Lots of options around here. No rush: the Met is open until 9pm.'},
+   words:[['menu','menü'],['water','su'],['delicious','lezzetli']]},
+  {t:'15:00',ll:[40.7794,-73.9632],mode:'taxi',name:{tr:'Metropolitan Sanat Müzesi (Met)',en:'The Metropolitan Museum of Art'},
+   how:{tr:'Taksiyle ~10 dk (5. Cadde & 82. Cadde)',en:'Taxi ~10 min (Fifth Ave & 82nd St)'},
+   note:{tr:'Cuma 21:00\'e kadar açık. Önerim: Mısır bölümü ve içindeki gerçek Dendur Tapınağı, Avrupa resimleri, İslam sanatı galerileri. 2 saat yeter.',en:'Open until 9pm on Fridays. My picks: the Egyptian wing with the real Temple of Dendur, European paintings, and the Islamic Art galleries. Two hours is enough.'},
+   link:['metmuseum.org','https://www.metmuseum.org'],
+   words:[['museum','müze'],['painting','tablo'],['ticket','bilet']]},
+  {t:'17:30',ll:[40.7638,-73.9730],mode:'taxi',name:{tr:'5. Cadde: Apple küpü ve Plaza Oteli',en:'Fifth Avenue: the Apple cube & the Plaza'},
+   how:{tr:'Madison Ave\'den güneye giden otobüs veya taksi (~15 dk)',en:'Southbound bus on Madison Ave or taxi (~15 min)'},
+   note:{tr:'Cam küplü Apple mağazası, karşısında Plaza Oteli ve Bergdorf Goodman\'ın yılbaşı vitrinleri. Hava kararınca ışıklar çok güzel.',en:'The glass-cube Apple store, the Plaza Hotel across the street, and Bergdorf Goodman\'s holiday windows. The lights are lovely after dark.'},
+   words:[['store','mağaza'],['window','vitrin'],['sale','indirim']]},
+  {t:'18:00',ll:[40.7613,-73.9752],mode:'walk',pic:'meta',name:{tr:'Meta mağazası (697 5. Cadde)',en:'Meta store (697 Fifth Ave)'},
+   how:{tr:'Güneye 5 dk yürüyüş (54.–55. Cadde arası)',en:'Walk 5 min south (between 54th & 55th St)'},
+   note:{tr:'Kızınızın çalıştığı şirketin mağazası! Ray-Ban Meta gözlükleri ve Quest sanal gerçeklik başlığını deneyebilirsiniz.',en:'The store of the company your daughter works for! You can try on Ray-Ban Meta glasses and the Quest virtual reality headset.'},
+   words:[['glasses','gözlük'],['try on','denemek'],['headset','başlık']]},
+  {t:'18:30',ll:[40.7585,-73.9765],mode:'walk',pic:'tree',name:{tr:'St. Patrick\'s, Saks vitrinleri ve Rockefeller',en:'St. Patrick\'s, Saks windows & Rockefeller'},
+   how:{tr:'50. Cadde\'ye yürüyüş (~8 dk, durarak)',en:'Walk to 50th St (~8 min, with stops)'},
+   note:{tr:'Neo-gotik St. Patrick Katedrali, Saks\'ın vitrinleri ve Rockefeller Center\'daki dev çam. Ağaç kurulmuş olur ama ışıkları Aralık başındaki törende yanar.',en:'Neo-Gothic St. Patrick\'s Cathedral, Saks\' windows and the giant tree at Rockefeller Center. The tree will be up, but its lights go on at the ceremony in early December.'},
+   words:[['tree','ağaç'],['lights','ışıklar'],['church','kilise']]},
+  {t:'19:30',ll:[40.7508,-73.9890],mode:'subway',name:{tr:'Macy\'s Herald Square: alışveriş',en:'Macy\'s Herald Square: shopping'},
+   how:{tr:'47–50 St Rockefeller Ctr\'den B/D/F/M, 2 durak → 34 St',en:'B/D/F/M from 47–50 St Rockefeller Ctr, 2 stops → 34 St'},
+   note:{tr:'Dünyanın en büyük mağazalarından biri. Black Friday indirimleri ve üst katlarda hâlâ çalışan eski ahşap yürüyen merdivenler.',en:'One of the world\'s largest stores. Black Friday sales, and old wooden escalators that still run on the upper floors.'},
+   words:[['discount','indirim'],['size','beden'],['cashier','kasa']]},
+  {t:'21:30',ll:[40.7939,-73.9724],mode:'subway',name:{tr:'Eve dönüş: 2/3 ekspres',en:'Home: 2/3 express'},
+   how:{tr:'34 St–Penn Station\'dan 2 veya 3 → 96. Cadde (~15 dk)',en:'2 or 3 from 34 St–Penn Station → 96th St (~15 min)'},
+   note:{tr:'Torbalar ağırsa taksi de olur. Ayaklarınızı uzatma vakti!',en:'If the bags are heavy, take a taxi. Time to put your feet up!'},
+   words:[['tired','yorgun'],['uptown','kuzeye'],['bag','çanta']]},
+  ]},
+{ id:'sat', date:'2026-11-28', color:'--sat',
+  tab:{tr:['Cumartesi','28 Kasım'],en:['Saturday','Nov 28']},
+  theme:{tr:'Türk kahvaltısı, vapur ve New Jersey kıyısı',en:'Turkish breakfast, ferries and the Jersey waterfront'},
+  walk:'~5 km', sunset:'16:30',
+  weather:{tr:'~3°C ile 8°C arası; nehir kenarı rüzgarlı (Kasım ortalaması)',en:'~37°F to 46°F; windy by the river (typical late November)'},
+  tips:{tr:['Vapur saatlerini nywaterway.com\'dan kontrol edin; bileti gişeden veya uygulamadan alın.','Özgürlük Heykeli\'ni gün ışığında görmek için Liberty State Park\'a en geç 15:45\'te varın.','Bugün tempo rahat: acele yok, bol fotoğraf.'],
+        en:['Check ferry times on nywaterway.com; buy tickets at the window or in the app.','Reach Liberty State Park by 3:45 at the latest to see the Statue in daylight.','Easy pace today: no rush, lots of photos.']},
+  stops:[
+  {t:'10:00',ll:[40.7856,-73.9751],mode:'taxi',name:{tr:'Lokal: Türk kahvaltısı',en:'Lokal: Turkish breakfast'},
+   how:{tr:'473 Columbus Ave (83. Cadde). Taksiyle 5 dk ya da 20 dk yürüyüş',en:'473 Columbus Ave (83rd St). Taxi 5 min or walk 20 min'},
+   note:{tr:'Uzun ve keyifli bir kahvaltı. Çay, peynir, zeytin, sucuklu yumurta…',en:'A long, relaxed breakfast. Tea, cheese, olives, eggs with sucuk…'},
+   words:[['breakfast','kahvaltı'],['tea','çay'],['egg','yumurta']]},
+  {t:'11:45',ll:[40.7590,-74.0035],mode:'taxi',name:{tr:'Midtown vapur iskelesi (W 39. Cadde)',en:'Midtown Ferry Terminal (W 39th St)'},
+   how:{tr:'Taksiyle ~15 dk (12. Ave & 39. Cadde)',en:'Taxi ~15 min (12th Ave & 39th St)'},
+   note:{tr:'NY Waterway vapuru. Hoboken için bilet alın.',en:'The NY Waterway ferry. Buy a ticket to Hoboken.'},
+   link:['nywaterway.com','https://www.nywaterway.com'],
+   words:[['ferry','vapur'],['pier','iskele'],['one-way','tek yön']]},
+  {t:'12:15',ll:[40.7355,-74.0275],mode:'ferry',name:{tr:'Hoboken\'e vapurla',en:'Ferry to Hoboken'},
+   how:{tr:'Hudson Nehri\'ni geçiş, ~10 dk',en:'Across the Hudson, ~10 min'},
+   note:{tr:'Arkanızda bütün Manhattan silueti. Dışarıda durup fotoğraf çekin!',en:'All of Manhattan\'s skyline behind you. Stand outside and take photos!'},
+   words:[['river','nehir'],['boat','tekne'],['wave','dalga']]},
+  {t:'12:30',ll:[40.7378,-74.0262],mode:'walk',name:{tr:'Pier A Park ve Sinatra Drive',en:'Pier A Park & Sinatra Drive'},
+   how:{tr:'İskeleden yürüyerek',en:'Walk from the pier'},
+   note:{tr:'Nehir kenarı boyunca düz ve kolay bir yürüyüş. Karşıda Empire State ve Midtown. Banklarda oturup manzarayı izleyin.',en:'A flat, easy walk along the river. Empire State and Midtown across the water. Sit on a bench and enjoy the view.'},
+   words:[['walk','yürüyüş'],['bench','bank'],['riverside','nehir kıyısı']]},
+  {t:'14:00',ll:[40.7400,-74.0300],mode:'walk',name:{tr:'Washington St, Hoboken: öğle yemeği',en:'Washington St, Hoboken: lunch'},
+   how:{tr:'Kıyıdan 5 dk içeri',en:'5 min inland from the river'},
+   note:{tr:'Hoboken\'in ana caddesi: kafeler, fırınlar, küçük restoranlar.',en:'Hoboken\'s main street: cafés, bakeries, small restaurants.'},
+   words:[['bakery','fırın'],['dessert','tatlı'],['café','kafe']]},
+  {t:'15:00',ll:[40.7098,-74.0420],mode:'taxi',name:{tr:'Liberty State Park: Empty Sky anıtı',en:'Liberty State Park: Empty Sky memorial'},
+   how:{tr:'Uber ile ~15 dk',en:'Uber ~15 min'},
+   note:{tr:'New Jersey\'nin 9/11 anıtı: iki uzun çelik duvar tam karşıdaki WTC\'ye bakar. Perşembe gördüğümüz yere nehrin öbür yakasından bakıyoruz.',en:'New Jersey\'s 9/11 memorial: two long steel walls pointing straight at the WTC. We look back across the river at the place we saw on Thursday.'},
+   words:[['memory','anı'],['wall','duvar'],['name','isim']]},
+  {t:'15:45',ll:[40.7010,-74.0462],mode:'walk',name:{tr:'Liberty Walk: Özgürlük Heykeli manzarası',en:'Liberty Walk: Statue of Liberty view'},
+   how:{tr:'Kıyı boyunca 15 dk yürüyüş',en:'15 min walk along the water'},
+   note:{tr:'Heykel buradan Manhattan\'dan çok daha yakın görünür; yanında Ellis Adası. Gün batımı ~16:30: arkada şehir pembe ve altın rengine boyanır.',en:'The Statue looks much closer from here than from Manhattan, with Ellis Island beside it. Sunset is ~4:30: the city behind turns pink and gold.'},
+   words:[['statue','heykel'],['island','ada'],['freedom','özgürlük']]},
+  {t:'17:15',ll:[40.7142,-74.0175],mode:'ferry',name:{tr:'Akşam vapuru → Brookfield Place',en:'Evening ferry → Brookfield Place'},
+   how:{tr:'Uber ile Paulus Hook iskelesine 10 dk, sonra vapur ~8 dk',en:'Uber 10 min to Paulus Hook pier, then ferry ~8 min'},
+   note:{tr:'Işıklar içindeki Manhattan\'a doğru vapur yolculuğu: günün final sahnesi.',en:'A ferry ride toward Manhattan all lit up: the day\'s grand finale.'},
+   words:[['lights','ışıklar'],['night','gece'],['return','dönüş']]},
+  {t:'17:45',ll:[40.7939,-73.9724],mode:'subway',name:{tr:'Eve dönüş: 2/3 treni',en:'Home: 2/3 train'},
+   how:{tr:'Park Place\'ten 2 veya 3 → 96. Cadde (~25 dk)',en:'2 or 3 from Park Place → 96th St (~25 min)'},
+   note:{tr:'Akşam evde dinlenme. Üç gün tamam!',en:'Rest at home tonight. Three days done!'},
+   words:[['rest','dinlenmek'],['photo album','fotoğraf albümü'],['thank you','teşekkürler']]},
+  ]}
+];
+
+const T={
+  title:{tr:'Kızınızla New York',en:'New York with your daughter'},
+  subtitle:{tr:'Üç gün, her durağın saati ve haritası. Bir durağa dokunun, harita oraya gitsin.',en:'Three days, with a time and a map for every stop. Tap a stop to see it on the map.'},
+  dates:{tr:'26–28 Kasım 2026',en:'Nov 26–28, 2026'},
+  walk:{tr:'Yürüyüş',en:'Walking'}, sunset:{tr:'Gün batımı',en:'Sunset'}, weather:{tr:'Hava',en:'Weather'},
+  tipsH:{tr:'Günün notları',en:'Notes for the day'},
+  words:{tr:'Bu durağın İngilizce kelimeleri',en:'Words for this stop'},
+  now:{tr:'Şu an',en:'Now'},
+  legend:{walk:{tr:'yürüyüş',en:'walk'},ride:{tr:'metro / taksi',en:'subway / taxi'},ferry:{tr:'vapur',en:'ferry'}},
+  home:{tr:'Ev',en:'Home'},
+  foot:{tr:'Saatler yaklaşıktır. Hava tahmini ve açılış saatlerini gitmeden kontrol edin.',en:'Times are approximate. Check the forecast and opening hours before you go.'},
+  labels:[
+    ['MANHATTAN','MANHATTAN',40.752,-73.986,0],['BROOKLYN','BROOKLYN',40.684,-73.975,0],['NEW JERSEY','NEW JERSEY',40.760,-74.055,0],
+    ['HOBOKEN','HOBOKEN',40.746,-74.036,0],['JERSEY CITY','JERSEY CITY',40.722,-74.055,0],['QUEENS','QUEENS',40.752,-73.932,0],
+    ['Central Park','Central Park',40.7835,-73.9695,0],['Hudson Nehri','Hudson River',40.775,-74.003,1],['East River','East River',40.736,-73.966,1],
+    ['Özgürlük Heykeli','Statue of Liberty',40.6862,-74.0445,0]
+  ]
+};
+
+/* ---------- state ---------- */
+let lang='tr', day=0, active=-1;
+try{const s=localStorage.getItem('nyc-lang'); if(s==='en'||s==='tr') lang=s;}catch(e){}
+function nyNow(){
+  const f=new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
+  const p=Object.fromEntries(f.formatToParts(new Date()).map(x=>[x.type,x.value]));
+  return {date:`${p.year}-${p.month}-${p.day}`,min:(+p.hour%24)*60+(+p.minute)};
+}
+const toMin=t=>{const [h,m]=t.split(':').map(Number);return h*60+m};
+function currentIdx(d){
+  const n=nyNow(); if(n.date!==d.date) return -1;
+  let idx=-1; d.stops.forEach((s,i)=>{ if(toMin(s.t)<=n.min) idx=i; }); return idx;
+}
+{ const n=nyNow(); const i=DAYS.findIndex(d=>d.date===n.date); if(i>=0) day=i; }
+
+/* ---------- icons ---------- */
+const ICON={
+ walk:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="13" cy="4" r="2"/><path d="M10 8.5l3-1 3 4 3 1-.6 1.8-3.6-1.2-1.3-1.6-.9 4 2.4 2.5V22h-2v-4.2l-2.6-2.6-1 4.6-1.9 4.2-1.9-.8 1.8-4.1L9.5 10l-1.6.7-.9 3.1-1.9-.5 1.2-4z"/></svg>',
+ subway:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="3" width="14" height="14" rx="3"/><path d="M5 11h14M9 21l1.5-4M15 21l-1.5-4"/><circle cx="9" cy="14" r=".6" fill="currentColor"/><circle cx="15" cy="14" r=".6" fill="currentColor"/></svg>',
+ taxi:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16v-4l2-5h12l2 5v4z"/><path d="M10 7V5h4v2"/><circle cx="7.5" cy="16.5" r="1.8"/><circle cx="16.5" cy="16.5" r="1.8"/></svg>',
+ ferry:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15l2 3h14l2-3z"/><path d="M7 15V9h10v6M10 9V6h4v3"/><path d="M2 21c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1 2-1 4-1"/></svg>'
+};
+
+/* ---------- stop pictures (hand-drawn, 48×48) ---------- */
+const PICS={
+ thu:['parade','subway','arch','falafel','castiron','pools','bridge','sunset','market','train'],
+ fri:['park','lake','coffee','mosque','plate','met','cube','meta','tree','bag','train'],
+ sat:['breakfast','pier','ferry','bench','bakery','walls','statue','nightferry','train']
+};
+const C='var(--c)',G='var(--gold)',W='var(--water)',WI='var(--water-ink)',I='var(--ink)',S='var(--surface)',M='var(--muted)',LE='var(--land-edge)';
+const PIC={
+ parade:`<path d="M24 30 v14" stroke="${M}" stroke-width="1.5"/><circle cx="24" cy="17" r="12" fill="${C}"/><circle cx="20" cy="14" r="3" fill="${S}" opacity=".5"/><circle cx="12" cy="30" r="6" fill="${G}"/><path d="M12 36 v8" stroke="${M}" stroke-width="1.5"/><circle cx="37" cy="31" r="5" fill="${WI}"/><path d="M37 36 v8" stroke="${M}" stroke-width="1.5"/>`,
+ subway:`<circle cx="24" cy="24" r="17" fill="#e4352b"/><text x="24" y="31" text-anchor="middle" font-size="21" font-weight="800" fill="#fff" font-family="Nunito,sans-serif">1</text>`,
+ arch:`<path d="M8 42 V16 h32 v26 h-9 V28 a7 7 0 0 0 -14 0 V42z" fill="${S}" stroke="${I}" stroke-width="2" stroke-linejoin="round"/><path d="M6 16 h36 M8 12 h32 v4" stroke="${I}" stroke-width="2" fill="none"/><path d="M4 44 h40" stroke="${M}" stroke-width="2"/>`,
+ falafel:`<path d="M10 20 Q24 6 38 20 L32 42 H16Z" fill="#e9c98f" stroke="#b8904f" stroke-width="1.5"/><circle cx="19" cy="20" r="4" fill="#8a5a2b"/><circle cx="27" cy="18" r="4" fill="#8a5a2b"/><path d="M15 25 q9 4 18 0" stroke="#5c9a3a" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="31" cy="22" r="2.5" fill="#d64b3b"/>`,
+ castiron:`<rect x="10" y="6" width="28" height="38" fill="${S}" stroke="${I}" stroke-width="2"/><path d="M10 15h28M10 24h28M10 33h28" stroke="${I}" stroke-width="1.5"/><g fill="${WI}"><rect x="13" y="8" width="4" height="5"/><rect x="22" y="8" width="4" height="5"/><rect x="31" y="8" width="4" height="5"/><rect x="13" y="17" width="4" height="5"/><rect x="22" y="17" width="4" height="5"/><rect x="31" y="17" width="4" height="5"/><rect x="13" y="26" width="4" height="5"/><rect x="22" y="26" width="4" height="5"/><rect x="31" y="26" width="4" height="5"/></g><path d="M17 44 v-8 h14 v8" fill="${C}"/>`,
+ pools:`<rect x="6" y="14" width="36" height="26" fill="${M}"/><rect x="10" y="18" width="28" height="18" fill="${W}"/><path d="M12 18v6M16 18v6M20 18v6M24 18v6M28 18v6M32 18v6M36 18v6" stroke="${S}" stroke-width="1.5"/><rect x="19" y="26" width="10" height="7" fill="${I}" opacity=".55"/>`,
+ bridge:`<rect x="0" y="34" width="48" height="14" fill="${W}"/><path d="M14 34 V10 h6 v24 M28 34 V10 h6 v24" fill="${M}"/><path d="M0 22 Q17 34 17 12 M31 12 Q31 34 48 22" stroke="${I}" stroke-width="1.5" fill="none"/><path d="M0 26 H48" stroke="${I}" stroke-width="2.5"/><rect x="21" y="6" width="5" height="20" fill="${I}" opacity=".35"/>`,
+ sunset:`<circle cx="24" cy="30" r="11" fill="${G}"/><rect x="0" y="30" width="48" height="18" fill="${W}"/><path d="M6 36 h10 M22 40 h14 M10 44 h8" stroke="${S}" stroke-width="2" stroke-linecap="round"/><path d="M4 30 v-8 h4 v-6 h4 v14 M34 30 V14 h4 v-4 h3 v20" fill="${I}" opacity=".7"/>`,
+ market:`<rect x="8" y="20" width="32" height="22" fill="${S}" stroke="${I}" stroke-width="2"/><path d="M6 20 l4 -10 h28 l4 10z" fill="${C}"/><path d="M14 10 l-2 10 M22 10 v10 M30 10 l2 10" stroke="${S}" stroke-width="2"/><path d="M18 28 v10 M16 28 v4 q2 2 4 0 v-4 M30 28 q-4 3 0 6 v4" stroke="${I}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`,
+ train:`<rect x="11" y="6" width="26" height="30" rx="6" fill="${M}"/><rect x="15" y="11" width="18" height="11" rx="2" fill="${W}"/><circle cx="17" cy="29" r="2.2" fill="${G}"/><circle cx="31" cy="29" r="2.2" fill="${G}"/><path d="M15 42 l3 -6 M33 42 l-3 -6" stroke="${I}" stroke-width="2.5" stroke-linecap="round"/><circle cx="24" cy="16" r="4.5" fill="#00933c"/><text x="24" y="18.6" text-anchor="middle" font-size="7" font-weight="800" fill="#fff" font-family="Nunito,sans-serif">2</text>`,
+ park:`<rect x="22" y="26" width="4" height="16" fill="#7a5233"/><circle cx="24" cy="18" r="13" fill="${G}"/><circle cx="16" cy="22" r="7" fill="${C}"/><circle cx="32" cy="22" r="7" fill="#d5832a"/><path d="M4 42 h40" stroke="${M}" stroke-width="2"/><circle cx="38" cy="38" r="3" fill="#8a6a50"/><path d="M41 37 q4 -4 1 -8" stroke="#8a6a50" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
+ lake:`<path d="M6 26 v-8 h4 v-6 h5 v14 M18 26 V8 h5 v18 M26 26 v-12 h4 v-4 h4 v16 M37 26 v-9 h5 v9" fill="${I}" opacity=".7"/><ellipse cx="24" cy="35" rx="21" ry="9" fill="${W}"/><path d="M8 26 h32" stroke="${M}" stroke-width="1.5"/><path d="M14 34 h8 M26 38 h10" stroke="${S}" stroke-width="2" stroke-linecap="round"/>`,
+ coffee:`<path d="M10 18 h24 v14 a10 10 0 0 1 -10 10 h-4 a10 10 0 0 1 -10 -10z" fill="${S}" stroke="${I}" stroke-width="2"/><path d="M34 22 h3 a5 5 0 0 1 0 10 h-3" stroke="${I}" stroke-width="2" fill="none"/><path d="M17 6 q-3 4 0 8 M24 6 q-3 4 0 8" stroke="${M}" stroke-width="2" fill="none" stroke-linecap="round"/><rect x="10" y="24" width="24" height="5" fill="${C}"/>`,
+ mosque:`<path d="M10 42 V26 h22 v16z" fill="${S}" stroke="${I}" stroke-width="2"/><path d="M12 26 a9 9 0 0 1 18 0z" fill="${G}" stroke="${I}" stroke-width="2"/><path d="M21 15 v-4" stroke="${I}" stroke-width="1.8"/><rect x="35" y="12" width="5" height="30" fill="${S}" stroke="${I}" stroke-width="2"/><path d="M34 12 l3.5 -6 l3.5 6z" fill="${C}"/><path d="M18 42 v-7 a3 3 0 0 1 6 0 v7" fill="${C}"/><path d="M4 42 h42" stroke="${M}" stroke-width="2"/>`,
+ plate:`<circle cx="24" cy="25" r="15" fill="${S}" stroke="${I}" stroke-width="2"/><circle cx="24" cy="25" r="9" fill="none" stroke="${LE}" stroke-width="2"/><path d="M5 12 v8 M3 12 v5 q2 3 4 0 v-5 M5 20 v20" stroke="${M}" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M43 12 q-4 6 0 12 v16" stroke="${M}" stroke-width="2" fill="none" stroke-linecap="round"/>`,
+ met:`<path d="M4 18 L24 8 L44 18z" fill="${S}" stroke="${I}" stroke-width="2" stroke-linejoin="round"/><rect x="6" y="18" width="36" height="3" fill="${I}"/><g fill="${S}" stroke="${I}" stroke-width="1.5"><rect x="9" y="21" width="4" height="17"/><rect x="17" y="21" width="4" height="17"/><rect x="27" y="21" width="4" height="17"/><rect x="35" y="21" width="4" height="17"/></g><path d="M4 40 h40 M2 43 h44" stroke="${I}" stroke-width="2"/><rect x="18" y="6" width="12" height="3" fill="${C}" opacity="0"/>`,
+ cube:`<path d="M24 10 L40 18 V36 L24 44 L8 36 V18z" fill="${W}" fill-opacity=".7" stroke="${I}" stroke-width="2" stroke-linejoin="round"/><path d="M8 18 L24 26 L40 18 M24 26 V44" stroke="${I}" stroke-width="1.5" fill="none"/><path d="M14 22 l0 12 M32 30 l4 -2" stroke="${S}" stroke-width="2" stroke-linecap="round"/>`,
+ meta:`<path d="M8 32 C8 14 16 12 24 24 C32 36 40 34 40 22 C40 12 32 12 24 24 C16 36 8 36 8 32Z" fill="none" stroke="#0866ff" stroke-width="5" stroke-linejoin="round"/>`,
+ tree:`<path d="M24 4 l13 18 h-6 l9 12 h-32 l9 -12 h-6z" fill="#2f7a3b"/><rect x="21" y="34" width="6" height="8" fill="#7a5233"/><g fill="${G}"><circle cx="20" cy="18" r="2"/><circle cx="28" cy="24" r="2"/><circle cx="17" cy="30" r="2"/><circle cx="31" cy="31" r="2"/></g><path d="M24 2 l1.5 3 l3 .3 l-2.3 2 l.7 3 l-2.9 -1.6 l-2.9 1.6 l.7 -3 l-2.3 -2 l3 -.3z" fill="${G}"/>`,
+ bag:`<path d="M10 16 h28 l2 28 H8z" fill="${C}"/><path d="M18 16 v-4 a6 6 0 0 1 12 0 v4" stroke="${I}" stroke-width="2.5" fill="none"/><path d="M24 23 l2.4 5 l5.4 .6 l-4 3.6 l1.2 5.3 l-5 -2.8 l-5 2.8 l1.2 -5.3 l-4 -3.6 l5.4 -.6z" fill="#fff"/>`,
+ breakfast:`<path d="M15 12 h12 q-3 8 0 14 q3 8 -2 16 h-8 q-5 -8 -2 -16 q3 -6 0 -14z" fill="#b5451b" fill-opacity=".85" stroke="${I}" stroke-width="1.5"/><path d="M14 42 h14" stroke="${I}" stroke-width="2"/><ellipse cx="21" cy="44" rx="10" ry="2" fill="${M}"/><circle cx="36" cy="30" r="9" fill="none" stroke="#c98b3e" stroke-width="5"/><g fill="${S}"><circle cx="33" cy="25" r=".9"/><circle cx="39" cy="26" r=".9"/><circle cx="41" cy="32" r=".9"/><circle cx="31" cy="33" r=".9"/></g>`,
+ pier:`<rect x="0" y="32" width="48" height="16" fill="${W}"/><path d="M4 30 h40" stroke="#8a6a50" stroke-width="4"/><path d="M10 30 v14 M24 30 v14 M38 30 v14" stroke="#8a6a50" stroke-width="3"/><rect x="14" y="10" width="20" height="14" rx="2" fill="${S}" stroke="${I}" stroke-width="2"/><path d="M18 15 h12 M18 19 h8" stroke="${C}" stroke-width="2"/>`,
+ ferry:`<rect x="0" y="34" width="48" height="14" fill="${W}"/><path d="M5 30 h38 l-5 8 H10z" fill="${C}"/><rect x="12" y="20" width="22" height="10" fill="${S}" stroke="${I}" stroke-width="1.5"/><path d="M15 24 h3 M21 24 h3 M27 24 h3" stroke="${WI}" stroke-width="2.5"/><rect x="20" y="13" width="7" height="7" fill="${I}"/><path d="M2 44 q4 -3 8 0 t8 0 t8 0 t8 0 t8 0" stroke="${S}" stroke-width="1.5" fill="none"/>`,
+ bench:`<path d="M6 22 h36 M6 28 h36" stroke="#8a6a50" stroke-width="4" stroke-linecap="round"/><path d="M6 32 h36" stroke="#8a6a50" stroke-width="4" stroke-linecap="round"/><path d="M10 22 v18 M38 22 v18" stroke="${I}" stroke-width="3"/><path d="M36 14 v-2 m-4 2 v-6 h-3 v6 M42 14 V6 h3" stroke="${M}" stroke-width="2" fill="none"/>`,
+ bakery:`<path d="M6 32 q4 -18 18 -18 q14 0 18 18 q-6 4 -10 -2 q-8 6 -16 0 q-4 6 -10 2z" fill="#e3a649" stroke="#a86c22" stroke-width="1.5"/><path d="M17 18 q2 8 -2 13 M24 14 v15 M31 18 q-2 8 2 13" stroke="#a86c22" stroke-width="1.5" fill="none"/>`,
+ walls:`<path d="M4 40 L22 14 L24 16 L8 42z" fill="${M}"/><path d="M26 16 L28 14 L44 40 L40 42z" fill="${M}"/><path d="M22 14 L24 16 M26 16 L28 14" stroke="${I}"/><rect x="21" y="4" width="2.5" height="10" fill="${I}" opacity=".3"/><rect x="25" y="4" width="2.5" height="10" fill="${I}" opacity=".3"/><path d="M2 44 h44" stroke="${M}" stroke-width="2"/>`,
+ statue:`<path d="M18 44 V34 h12 v10z" fill="${M}"/><path d="M20 34 q-2 -10 1 -16 l-3 -9 l3 1 l2 -3 l1 3 l3 -2 l-1 4 l3 1 l-2 3 q4 6 1 18z" fill="#5fa694"/><path d="M27 15 l3 -8" stroke="#5fa694" stroke-width="3" stroke-linecap="round"/><path d="M30 7 q-2 -4 0 -6 q2 2 0 6z" fill="${G}"/>`,
+ nightferry:`<rect x="0" y="0" width="48" height="34" fill="#1f3550"/><circle cx="38" cy="9" r="4" fill="#f2e6b8"/><path d="M4 30 v-8 h4 v-6 h4 v14 M16 30 V12 h4 v18 M24 30 v-10 h4 v10" fill="#0f1c2b"/><g fill="${G}"><rect x="17" y="15" width="1.5" height="1.5"/><rect x="17" y="20" width="1.5" height="1.5"/><rect x="25" y="23" width="1.5" height="1.5"/></g><rect x="0" y="34" width="48" height="14" fill="${W}"/><path d="M14 32 h28 l-4 6 H18z" fill="${C}"/><rect x="20" y="26" width="14" height="6" fill="${S}"/>`
+};
+
+/* ---------- map drawing ---------- */
+const svg=document.getElementById('map'), NS='http://www.w3.org/2000/svg';
+const el=(n,a={},p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;};
+function drawBase(){
+  svg.innerHTML='';
+  el('rect',{x:-500,y:-500,width:FULL.w+1000,height:FULL.h+1000,fill:'var(--water)'},svg);
+  for(const g of [JERSEY,BROOKLYN,MANHATTAN]) el('path',{d:poly(g),fill:'var(--land)',stroke:'var(--land-edge)','stroke-width':1.5,'stroke-linejoin':'round'},svg);
+  el('path',{d:poly(CPARK),fill:'var(--park)',stroke:'var(--park-edge)','stroke-width':1},svg);
+  const [rx,ry]=P(40.7855,-73.9627); el('ellipse',{cx:rx,cy:ry,rx:14,ry:22,fill:'var(--water)',transform:`rotate(29 ${rx} ${ry})`},svg);
+  // islands
+  for(const [la,ln,r] of [[40.6892,-74.0445,4],[40.6995,-74.0396,4],[40.6895,-74.0168,12]]){const [x,y]=P(la,ln); el('circle',{cx:x,cy:y,r,fill:'var(--land)',stroke:'var(--land-edge)'},svg);}
+  // a few avenues for orientation (Broadway, Fifth Ave)
+  const ave=(a,b)=>{const p1=P(...a),p2=P(...b); el('line',{x1:p1[0],y1:p1[1],x2:p2[0],y2:p2[1],stroke:'var(--land-edge)','stroke-width':1.2},svg)};
+  ave([40.7310,-73.9970],[40.8030,-73.9460]); // Fifth Ave
+  ave([40.7050,-74.0130],[40.8100,-73.9640]); // roughly Broadway-ish spine
+  svg.labelsG=el('g',{},svg); svg.routesG=el('g',{},svg); svg.pinsG=el('g',{},svg);
+}
+function drawDay(){
+  const d=DAYS[day], c=`var(${d.color})`;
+  const L=svg.labelsG; L.innerHTML='';
+  T.labels.forEach(([tr,en,la,ln,w])=>{const [x,y]=P(la,ln); const t=el('text',{x,y,class:'lbl'+(w?' w':''),'text-anchor':'middle'},L); t.textContent=lang==='tr'?tr:en; t.dataset.base=w?10:11;});
+  const R=svg.routesG; R.innerHTML='';
+  let prev=HOME.ll;
+  d.stops.forEach((s,i)=>{
+    const a=P(...prev), b=P(...s.ll);
+    const ferry=s.mode==='ferry', walk=s.mode==='walk';
+    const path=el('path',{d:`M${a[0]},${a[1]}L${b[0]},${b[1]}`,fill:'none',stroke:ferry?'var(--water-ink)':c,'stroke-linecap':'round','data-mode':s.mode,opacity:walk?1:.75},R);
+    prev=s.ll;
+  });
+  const G=svg.pinsG; G.innerHTML='';
+  // home
+  const [hx,hy]=P(...HOME.ll); const hg=el('g',{class:'pin',transform:`translate(${hx},${hy})`},G); hg.dataset.x=hx; hg.dataset.y=hy;
+  el('circle',{r:11,fill:'var(--surface)',stroke:'var(--ink)','stroke-width':2},hg);
+  el('path',{d:'M-6 1 L0 -5 L6 1 M-4 0 V6 H4 V0',fill:'none',stroke:'var(--ink)','stroke-width':2,'stroke-linejoin':'round'},hg);
+  // bonus pin
+  if(d.bonus && nyNow().date<=d.bonus.until){const [bx,by]=P(...d.bonus.ll); const bg=el('g',{class:'pin',transform:`translate(${bx},${by})`},G); bg.dataset.x=bx;bg.dataset.y=by;
+    el('circle',{r:9,fill:'var(--gold)',stroke:'var(--surface)','stroke-width':2},bg); const t=el('text',{'text-anchor':'middle',y:4,'font-size':11,'font-weight':800,fill:'#1e2a33'},bg); t.textContent='★';}
+  const cur=currentIdx(d);
+  d.stops.forEach((s,i)=>{
+    if(i===d.stops.length-1 && s.ll[0]===40.7939) return; // last leg ends at home station; skip duplicate pin
+    const [x,y]=P(...s.ll);
+    const g=el('g',{class:'pin',transform:`translate(${x},${y})`,tabindex:0,role:'button','aria-label':`${i+1}. ${s.name[lang]}`},G);
+    g.dataset.x=x; g.dataset.y=y; g.dataset.i=i;
+    el('circle',{r:i===active?14:11,fill:c,stroke:'var(--surface)','stroke-width':2.5},g);
+    const t=el('text',{'text-anchor':'middle',y:4.5,'font-size':12.5,'font-weight':800,fill:'#fff','font-family':'Nunito, sans-serif'},g); t.textContent=i+1;
+    g.addEventListener('click',()=>select(i,true));
+    g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select(i,true)}});
+  });
+  // trio marker: at current stop if today, else at home
+  const tIdx=active>=0?active:cur;
+  const tp=tIdx>=0?P(...d.stops[tIdx].ll):[hx,hy];
+  const tg=el('g',{transform:`translate(${tp[0]},${tp[1]})`,'pointer-events':'none'},G); tg.dataset.x=tp[0]; tg.dataset.y=tp[1]; tg.dataset.dy=-26;
+  el('rect',{x:-22,y:-11,width:44,height:22,rx:11,fill:'var(--surface)',stroke:`var(${d.color})`,'stroke-width':2},tg);
+  // mini heads: daughter, mom, dad
+  el('circle',{cx:-12,cy:0,r:6,fill:'#f3cfae'},tg); el('path',{d:'M-18 -1 Q-18 -7 -12 -7 Q-6 -7 -6 -1 Q-9 -4 -12 -4 Q-15 -4 -18 -1Z',fill:'#6b4a36'},tg);
+  el('circle',{cx:-14,cy:0.5,r:1.8,fill:'none',stroke:'#2b2b2b','stroke-width':.8},tg); el('circle',{cx:-10,cy:0.5,r:1.8,fill:'none',stroke:'#2b2b2b','stroke-width':.8},tg);
+  el('circle',{cx:0,cy:0,r:7,fill:'#c9cbd1'},tg); el('ellipse',{cx:0,cy:.5,rx:4,ry:4.8,fill:'#f2cba9'},tg); el('rect',{x:-3.6,y:-1.5,width:7.2,height:2.4,rx:1,fill:'#2a2a30'},tg);
+  el('circle',{cx:12,cy:0,r:6,fill:'#e8bf9c'},tg); el('path',{d:'M6 -1 Q6 -7 12 -7 Q18 -7 18 -1Z',fill:'#1b1c20'},tg); el('rect',{x:5,y:-2,width:14,height:1.8,rx:.9,fill:'#111215'},tg);
+  svg.trio=tg;
+  layout();
+}
+
+/* ---------- viewBox / zoom ---------- */
+let vb={...FULL}, anim=null;
+function unitsPerPx(){const r=svg.getBoundingClientRect();if(!r.width)return 1;return Math.max(vb.w/r.width,vb.h/r.height);}
+function layout(){
+  svg.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+  const s=unitsPerPx();
+  svg.pinsG.querySelectorAll('g').forEach(g=>{if(g.parentNode!==svg.pinsG)return; const dy=(+g.dataset.dy||0)*s; g.setAttribute('transform',`translate(${g.dataset.x},${+g.dataset.y+dy}) scale(${s})`);});
+  svg.labelsG.querySelectorAll('text').forEach(t=>{t.setAttribute('font-size',(+t.dataset.base)*s);t.setAttribute('stroke-width',3*s);});
+  svg.routesG.querySelectorAll('path').forEach(p=>{const m=p.dataset.mode;
+    p.setAttribute('stroke-width',(m==='walk'?3.5:3)*s);
+    p.setAttribute('stroke-dasharray',m==='walk'?`${.1*s} ${6*s}`:m==='ferry'?`${7*s} ${5*s}`:`${10*s} ${5*s}`);});
+}
+function animateTo(t){
+  cancelAnimationFrame(anim); const f={...vb}, t0=performance.now(), D=matchMedia('(prefers-reduced-motion: reduce)').matches?1:480;
+  const step=n=>{let k=Math.min(1,(n-t0)/D); k=1-Math.pow(1-k,3); for(const p of ['x','y','w','h']) vb[p]=f[p]+(t[p]-f[p])*k; layout(); if(k<1) anim=requestAnimationFrame(step);};
+  anim=requestAnimationFrame(step);
+}
+function boxFor(pts,pad=50){
+  const xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]);
+  let x0=Math.min(...xs)-pad,x1=Math.max(...xs)+pad,y0=Math.min(...ys)-pad,y1=Math.max(...ys)+pad;
+  const r=svg.getBoundingClientRect(), ar=r.width&&r.height?r.width/r.height:1;
+  let w=Math.max(x1-x0,160), h=Math.max(y1-y0,160); const cx=(x0+x1)/2, cy=(y0+y1)/2;
+  if(w/h<ar) w=h*ar; else h=w/ar;
+  return {x:cx-w/2,y:cy-h/2,w,h};
+}
+function fitDay(){const d=DAYS[day]; animateTo(boxFor([HOME.ll,...d.stops.map(s=>s.ll)].map(ll=>P(...ll)),40));}
+function zoom(f,cx,cy){ cx??=vb.x+vb.w/2; cy??=vb.y+vb.h/2; const w=Math.min(Math.max(vb.w*f,60),FULL.w*2.2), h=w*vb.h/vb.w; animateTo({x:cx-(cx-vb.x)*w/vb.w,y:cy-(cy-vb.y)*h/vb.h,w,h}); }
+document.getElementById('zin').onclick=()=>zoom(.6);
+document.getElementById('zout').onclick=()=>zoom(1.6);
+document.getElementById('zfit').onclick=()=>{active=-1;renderStops();drawDay();fitDay();};
+// drag to pan
+// drag to pan, two fingers to pinch-zoom
+let drag=null, pinch=null; const ptrs=new Map();
+const toUnits=(cx,cy)=>{const r=svg.getBoundingClientRect(), s=unitsPerPx(); return [vb.x+(cx-r.left-(r.width-vb.w/s)/2)*s, vb.y+(cy-r.top-(r.height-vb.h/s)/2)*s];};
+svg.addEventListener('pointerdown',e=>{
+  if(e.target.closest('.pin'))return;
+  ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY}); try{svg.setPointerCapture(e.pointerId)}catch(_){}
+  cancelAnimationFrame(anim);
+  if(ptrs.size===2){const [a,b]=[...ptrs.values()]; pinch={d:Math.hypot(a.x-b.x,a.y-b.y),vb:{...vb},c:toUnits((a.x+b.x)/2,(a.y+b.y)/2)}; drag=null;}
+  else if(ptrs.size===1){drag={x:e.clientX,y:e.clientY,vx:vb.x,vy:vb.y};}
+});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return; ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pinch&&ptrs.size===2){const [a,b]=[...ptrs.values()]; const f=pinch.d/Math.max(20,Math.hypot(a.x-b.x,a.y-b.y));
+    const w=Math.min(Math.max(pinch.vb.w*f,60),FULL.w*2.2), k=w/pinch.vb.w, [cx,cy]=pinch.c;
+    vb={x:cx-(cx-pinch.vb.x)*k,y:cy-(cy-pinch.vb.y)*k,w,h:pinch.vb.h*k}; layout(); return;}
+  if(!drag)return; const s=unitsPerPx(); vb.x=drag.vx-(e.clientX-drag.x)*s; vb.y=drag.vy-(e.clientY-drag.y)*s; layout();
+});
+const endDrag=e=>{ptrs.delete(e.pointerId); if(ptrs.size<2) pinch=null; if(ptrs.size===0) drag=null;
+  else if(ptrs.size===1){const [p]=[...ptrs.values()]; drag={x:p.x,y:p.y,vx:vb.x,vy:vb.y};}};
+svg.addEventListener('pointerup',endDrag); svg.addEventListener('pointercancel',endDrag);
+svg.addEventListener('wheel',e=>{e.preventDefault(); const r=svg.getBoundingClientRect(), s=unitsPerPx(); const cx=vb.x+(e.clientX-r.left-(r.width-vb.w/s)/2)*s, cy=vb.y+(e.clientY-r.top-(r.height-vb.h/s)/2)*s; zoom(e.deltaY>0?1.25:.8,cx,cy);},{passive:false});
+addEventListener('resize',layout);
+
+/* ---------- UI ---------- */
+const $=id=>document.getElementById(id);
+function renderChrome(){
+  document.documentElement.lang=lang;
+  $('btn-tr').setAttribute('aria-pressed',lang==='tr'); $('btn-en').setAttribute('aria-pressed',lang==='en');
+  $('title').textContent=T.title[lang]; $('subtitle').textContent=T.subtitle[lang]; $('dates').textContent=T.dates[lang];
+  $('foot').textContent=T.foot[lang];
+  $('tabs').innerHTML=DAYS.map((d,i)=>`<button class="tab" role="tab" type="button" id="tab-${d.id}" style="--c:var(${d.color})" aria-selected="${i===day}"><b>${d.tab[lang][0]}</b><span>${d.tab[lang][1]}</span></button>`).join('');
+  DAYS.forEach((d,i)=>$('tab-'+d.id).onclick=()=>{day=i;active=-1;renderAll();fitDay();playScene(false);});
+  const L=T.legend; $('legend').innerHTML=`<span class="lw"><i style="border-color:var(${DAYS[day].color})"></i>${L.walk[lang]}</span><span><i style="border-top-style:dashed;border-color:var(${DAYS[day].color})"></i>${L.ride[lang]}</span><span class="lf"><i></i>${L.ferry[lang]}</span>`;
+}
+function renderDay(){
+  const d=DAYS[day];
+  document.querySelectorAll('.wrap').forEach(w=>w.style.setProperty('--c',`var(${d.color})`));
+  $('daytheme').textContent=d.theme[lang];
+  $('daybar').innerHTML=`<span>${T.weather[lang]}: <strong>${d.weather[lang]}</strong></span><span>${T.sunset[lang]}: <strong>${d.sunset}</strong></span><span>${T.walk[lang]}: <strong>${d.walk}</strong></span>`;
+  $('tips').innerHTML=`<h4>${T.tipsH[lang]}</h4><ul>${d.tips[lang].map(t=>`<li>${t}</li>`).join('')}</ul>`;
+  const b=d.bonus; $('bonus').innerHTML=(b&&nyNow().date<=b.until)?`<div class="bonus"><svg width="22" height="22" viewBox="0 0 24 24" fill="var(--gold)"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.8-6.2 3.8 1.6-7L2 9.2l7.1-.6z"/></svg><div><b>${b[lang][0]}</b><br>${b[lang][1]}</div></div>`:'';
+  renderStops();
+}
+function renderStops(){
+  const d=DAYS[day], cur=currentIdx(d);
+  $('stops').innerHTML=d.stops.map((s,i)=>`<li><div class="stop" role="button" tabindex="0" id="stop-${i}" aria-current="${i===active}">
+    <span class="num">${i+1}</span>
+    <svg class="pic" viewBox="0 0 48 48" aria-hidden="true">${PIC[PICS[d.id][i]]||''}</svg>
+    <div class="st-head"><span class="time">${s.t}</span>${i===cur?`<span class="now">${T.now[lang]}</span>`:''}<h3>${s.name[lang]}</h3></div>
+    <div class="st-body">
+      <div class="how">${ICON[s.mode]}<span>${s.how[lang]}</span></div>
+      <p class="note">${s.note[lang]}${s.link?` <a href="${s.link[1]}" target="_blank" rel="noopener">${s.link[0]} ↗</a>`:''}</p>
+      <div class="words"><small>${T.words[lang]}</small><ul>${s.words.map(([en,tr])=>`<li><b>${en}</b> <span>= ${tr}</span></li>`).join('')}</ul></div>
+    </div></div></li>`).join('');
+  d.stops.forEach((s,i)=>{const n=$('stop-'+i); n.onclick=e=>{if(e.target.closest('a'))return;select(i,false)}; n.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select(i,false)}};});
+}
+function select(i,fromMap){
+  active=i; renderStops(); drawDay();
+  const d=DAYS[day]; const pts=[P(...d.stops[i].ll)]; if(i>0) pts.push(P(...d.stops[i-1].ll)); else pts.push(P(...HOME.ll));
+  animateTo(boxFor(pts,70));
+  if(fromMap) $('stop-'+i).scrollIntoView({behavior:'smooth',block:'center'});
+}
+/* ---------- header cartoon scenes ---------- */
+const SAY={greet:{tr:'Hoş geldiniz!',en:'Welcome!'},thu:{tr:'Balonlar geliyor!',en:'Balloons are coming!'},fri:{tr:'Alışverişe!',en:'Shopping time!'},sat:{tr:'Haydi vapura!',en:'All aboard!'}};
+const art=$('art'); let sayTimer, greetTimer, mood='greet';
+function say(key){
+  const t=$('bubble-t'); t.textContent=SAY[key][lang];
+  art.classList.add('says');
+  try{const w=t.getComputedTextLength()+24; const r=art.querySelector('#bubble rect'); r.setAttribute('width',w); r.setAttribute('x',110-w/2);}catch(e){}
+  clearTimeout(sayTimer); sayTimer=setTimeout(()=>art.classList.remove('says'),2600);
+}
+function playScene(greet){
+  clearTimeout(greetTimer);
+  art.setAttribute('class',''); void art.getBoundingClientRect();
+  const sc='s-'+DAYS[day].id;
+  if(greet){ mood='greet'; art.setAttribute('class','greet'); say('greet');
+    greetTimer=setTimeout(()=>{ mood=DAYS[day].id; art.setAttribute('class',sc); say(DAYS[day].id); },2700);
+  } else { mood=DAYS[day].id; art.setAttribute('class',sc); say(DAYS[day].id); }
+}
+art.addEventListener('click',()=>playScene(true));
+art.style.cursor='pointer';
+
+function renderAll(){renderChrome();renderDay();drawDay();}
+$('btn-tr').onclick=()=>{lang='tr';try{localStorage.setItem('nyc-lang',lang)}catch(e){}renderAll();say(mood);};
+$('btn-en').onclick=()=>{lang='en';try{localStorage.setItem('nyc-lang',lang)}catch(e){}renderAll();say(mood);};
+
+drawBase(); renderAll(); playScene(true);
+vb=boxFor([HOME.ll,...DAYS[day].stops.map(s=>s.ll)].map(ll=>P(...ll)),40); layout();
+</script>
